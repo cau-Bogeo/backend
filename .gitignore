@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Dockerfile ###
+Dockerfile
+
+### jwt file ###
+src/main/java/com/caubogeo/bogeo/jwt/JwtProperties.java
