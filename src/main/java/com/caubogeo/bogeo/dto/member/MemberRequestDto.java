@@ -27,7 +27,7 @@ public class MemberRequestDto {
                 .password(passwordEncoder.encode(password))
                 .age(age)
                 .gender(gender)
-                .activated(false)
+                .activated(true)
                 .authorities(authorities)
                 .build();
     }

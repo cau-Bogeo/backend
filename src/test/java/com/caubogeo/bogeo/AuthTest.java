@@ -1,7 +1,9 @@
 package com.caubogeo.bogeo;
 
+import com.caubogeo.bogeo.controller.auth.AuthController;
 import com.caubogeo.bogeo.domain.auth.MemberAuth;
 import com.caubogeo.bogeo.domain.member.Gender;
+import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.dto.member.MemberRequestDto;
 import com.caubogeo.bogeo.dto.member.MemberResponseDto;
 import com.caubogeo.bogeo.repository.AuthorityRepository;
@@ -11,20 +13,26 @@ import com.caubogeo.bogeo.service.auth.AuthService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AuthTest {
     @LocalServerPort
@@ -55,7 +63,7 @@ public class AuthTest {
 
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         authorityRepository.deleteAll();
         memberRepository.deleteAll();
@@ -69,14 +77,19 @@ public class AuthTest {
         MemberRequestDto requestDto = MemberRequestDto.builder()
                 .id(id)
                 .password(password)
+                .age(12)
+                .gender(Gender.WOMAN)
                 .build();
 
-        String url = "http://localhost:" + port + "/auth/signup";
+        String url = "https://9723-219-255-207-61.ngrok.io"+"/auth/signup";
 
         //when
-        ResponseEntity<MemberResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, MemberResponseDto.class);
+        ResponseEntity<MemberResponseDto> responseEntity = this.testRestTemplate.postForEntity(url, requestDto, MemberResponseDto.class);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(responseEntity.getBody().getId()).isEqualTo("ssol0319");
+        assertThat(responseEntity.getBody().getId()).isEqualTo(requestDto.getId());
+
+        List<Member> all = memberRepository.findAll();
+        assertThat(all.get(0).getId()).isEqualTo(responseEntity.getBody().getId());
     }
 
 }

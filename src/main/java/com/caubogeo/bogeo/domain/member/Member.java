@@ -48,7 +48,7 @@ public class Member extends BaseTimeEntity {
     @ManyToMany
     @JoinTable(
             name="member_authority",
-            joinColumns = {@JoinColumn(name="id", referencedColumnName = "id")},
+            joinColumns = {@JoinColumn(name="member_id", referencedColumnName = "member_id")},
             inverseJoinColumns = {@JoinColumn(name="authority_name", referencedColumnName = "authority_name")}
     )
     private Set<Authority> authorities = new HashSet<>();

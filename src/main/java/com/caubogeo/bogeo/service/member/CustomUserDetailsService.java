@@ -2,7 +2,8 @@ package com.caubogeo.bogeo.service.member;
 
 import com.caubogeo.bogeo.domain.auth.Authority;
 import com.caubogeo.bogeo.domain.member.Member;
-import com.caubogeo.bogeo.exceptionhandler.BizException;
+import com.caubogeo.bogeo.exceptionhandler.JwtException;
+import com.caubogeo.bogeo.exceptionhandler.MemberException;
 import com.caubogeo.bogeo.exceptionhandler.MemberExceptionType;
 import com.caubogeo.bogeo.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +32,13 @@ public class CustomUserDetailsService  implements UserDetailsService {
         log.debug("CustomUserDetailsService -> id : {}", userId);
         return memberRepository.findById(userId)
                 .map(this::createUserDetails)
-                .orElseThrow(() -> new BizException(MemberExceptionType.NOT_FOUND_USER));
+                .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
     }
 
     @Transactional(readOnly = true)
-    public Member getMember(String userId) throws BizException {
+    public Member getMember(String userId) throws JwtException {
         return memberRepository.findById(userId)
-                .orElseThrow(() -> new BizException(MemberExceptionType.NOT_FOUND_USER));
+                .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
     }
 
     private UserDetails createUserDetails(Member member) {

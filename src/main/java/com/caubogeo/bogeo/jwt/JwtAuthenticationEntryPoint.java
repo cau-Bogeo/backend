@@ -1,6 +1,7 @@
 package com.caubogeo.bogeo.jwt;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
-        out.println("{\"error\": \"NO_AUTHORIZATION\", \"message\" : \"인증정보가 없습니다.\"}");
+        out.println("{\"status\": 401, \"code\": \"NO_AUTHORIZATION\", \"message\": \"인증정보가 없습니다.\"}");
     }
 }

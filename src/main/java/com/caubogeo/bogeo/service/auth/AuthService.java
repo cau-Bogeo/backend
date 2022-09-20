@@ -9,10 +9,7 @@ import com.caubogeo.bogeo.dto.jwt.TokenRequestDto;
 import com.caubogeo.bogeo.dto.login.LoginRequestDto;
 import com.caubogeo.bogeo.dto.member.MemberRequestDto;
 import com.caubogeo.bogeo.dto.member.MemberResponseDto;
-import com.caubogeo.bogeo.exceptionhandler.AuthorityExceptionType;
-import com.caubogeo.bogeo.exceptionhandler.BizException;
-import com.caubogeo.bogeo.exceptionhandler.JwtExceptionType;
-import com.caubogeo.bogeo.exceptionhandler.MemberExceptionType;
+import com.caubogeo.bogeo.exceptionhandler.*;
 import com.caubogeo.bogeo.jwt.CustomIdPasswordAuthToken;
 import com.caubogeo.bogeo.jwt.TokenProvider;
 import com.caubogeo.bogeo.repository.AuthorityRepository;
@@ -23,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -42,15 +40,20 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final CustomUserDetailsService customUserDetailsService;
 
+    public boolean checkId(String id) {
+        log.info("checkID : {}", id);
+        log.info("existsByID : {}", memberRepository.existsById(id));
+        return memberRepository.existsById(id);
+    }
+
     @Transactional
     public MemberResponseDto signUp(MemberRequestDto dto) {
         if(memberRepository.existsById(dto.getId())) {
-            throw new BizException(MemberExceptionType.DUPLICATE_USER);
+            throw new MemberException(MemberExceptionType.DUPLICATE_USER);
         }
 
         Authority authority = authorityRepository
-                .findByAuthorityName(MemberAuth.ROLE_USER).orElseThrow(() -> new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY));
-
+                .findByAuthorityName(MemberAuth.ROLE_USER).orElseThrow(() -> new AuthException(AuthorityExceptionType.NOT_FOUND_AUTHORITY));
         Set<Authority> set = new HashSet<>();
         set.add(authority);
 
@@ -69,56 +72,99 @@ public class AuthService {
         String accessToken = tokenProvider.createAccessToken(id, member.getAuthorities());
         String refreshToken = tokenProvider.createRefreshToken(id, member.getAuthorities());
 
-        refreshTokenRepository.save(
-                RefreshToken.builder()
-                        .key(id)
-                        .value(refreshToken)
-                        .build()
-        );
-
+        refreshTokenRepository.findByKey(id)
+                        .ifPresentOrElse(
+                                (tokenEntity) -> tokenEntity.updateValue(refreshToken),
+                                () -> refreshTokenRepository.save(
+                                        RefreshToken.builder()
+                                        .key(id)
+                                        .value(refreshToken)
+                                        .build())
+                        );
         return tokenProvider.createTokenDto(accessToken, refreshToken);
     }
 
     @Transactional
-    public TokenDto reissue(TokenRequestDto tokenRequestDto) {
-        // access token은 JWT filter에서 검증되고 온다
-        String originAccessToken = tokenRequestDto.getAccessToken();
-        String originRefreshToken = tokenRequestDto.getRefreshToken();
+    public TokenDto reissue(String refreshToken) {
+        Authentication authentication = tokenProvider.getAuthentication(refreshToken);
+        RefreshToken findRefreshToken = refreshTokenRepository.findByKey(authentication.getName())
+                .orElseThrow(() -> new MemberException(MemberExceptionType.LOGOUT_MEMBER));
 
-        // refresh token 검증
-        int refreshTokenFlag = tokenProvider.validateToken(originRefreshToken);
-        log.debug("refreshTokenFlag = {}", refreshTokenFlag);
+        if(findRefreshToken.getValue().equals(refreshToken)) {
+            String id = tokenProvider.getMemberIdByToken(refreshToken);
+            Member member = customUserDetailsService.getMember(id);
 
-        if(refreshTokenFlag == -1) {
-            throw new BizException(JwtExceptionType.BAD_TOKEN);  // 잘못된 리프레시 토큰
-        } else if(refreshTokenFlag == 2) {
-            throw new BizException(JwtExceptionType.REFRESH_TOKEN_EXPIRED);  // 유효기간이 끝난 토큰
+            String newRefreshToken = tokenProvider.createRefreshToken(id, member.getAuthorities());
+            String newAccessToken = tokenProvider.createAccessToken(id, member.getAuthorities());
+            findRefreshToken.updateValue(newRefreshToken);
+
+            TokenDto tokenDto = tokenProvider.createTokenDto(newAccessToken, newRefreshToken);
+            log.debug("refresh New = {} ",newRefreshToken);
+            return tokenDto;
+        } else {
+            log.info("refresh 토큰이 일치하지 않습니다.");
+            return null;
         }
 
-        Authentication authentication = tokenProvider.getAuthentication(originAccessToken);
-
-        log.debug("Authentication = {}", authentication);
-
-        RefreshToken refreshToken = refreshTokenRepository.findByKey(authentication.getName())
-                .orElseThrow(() -> new BizException(MemberExceptionType.LOGOUT_MEMBER));
-
-        if(!refreshToken.getValue().equals(originRefreshToken)) {
-            throw new BizException(JwtExceptionType.BAD_TOKEN); // 토큰이 일치하지 않습니다.
-        }
-
-        String id = tokenProvider.getMemberIdByToken(originAccessToken);
-        Member member = customUserDetailsService.getMember(id);
-
-        String newAccessToken = tokenProvider.createAccessToken(id, member.getAuthorities());
-        String newRefreshToken = tokenProvider.createRefreshToken(id, member.getAuthorities());
-
-        TokenDto tokenDto = tokenProvider.createTokenDto(newAccessToken, newRefreshToken);
-        log.debug("refresh Origin = {}",originRefreshToken);
-        log.debug("refresh New = {} ",newRefreshToken);
-
-        // 저장소 정보 업데이트 (dirtyChecking으로 업데이트)
-        refreshToken.updateValue(newRefreshToken);
-
-        return tokenDto;
+//        // access token은 JWT filter에서 검증되고 온다
+//        String originAccessToken = tokenRequestDto.getAccessToken();
+//        String originRefreshToken = tokenRequestDto.getRefreshToken();
+//
+//        // refresh token 검증
+//        boolean isValid = tokenProvider.validateToken(originRefreshToken);
+//        log.debug("isValid = {}", isValid);
+//
+//        if(isValid == -1) {
+//            throw new JwtException(JwtExceptionType.BAD_TOKEN);
+//        }
+//        else if(isValid == 2) {
+//            throw new JwtException(JwtExceptionType.REFRESH_TOKEN_EXPIRED);
+//        }
+//
+//        Authentication authentication = tokenProvider.getAuthentication(originAccessToken);
+//        log.debug("Authentication = {}", authentication);
+//
+//        RefreshToken refreshToken = refreshTokenRepository.findByKey(authentication.getName())
+//                .orElseThrow(() -> new MemberException(MemberExceptionType.LOGOUT_MEMBER));
+//
+//        if(!refreshToken.getValue().equals(originRefreshToken)) {
+//            throw new JwtException(JwtExceptionType.BAD_TOKEN); // 토큰이 일치하지 않습니다.
+//        }
+//
+//        String id = tokenProvider.getMemberIdByToken(originAccessToken);
+//        Member member = customUserDetailsService.getMember(id);
+//
+//        String newAccessToken = tokenProvider.createAccessToken(id, member.getAuthorities());
+//        String newRefreshToken = tokenProvider.createRefreshToken(id, member.getAuthorities());
+//
+//        TokenDto tokenDto = tokenProvider.createTokenDto(newAccessToken, newRefreshToken);
+//        log.debug("refresh Origin = {}",originRefreshToken);
+//        log.debug("refresh New = {} ",newRefreshToken);
+//
+//        // 저장소 정보 업데이트 (dirtyChecking으로 업데이트)
+//        refreshToken.updateValue(newRefreshToken);
+//
+//        return tokenDto;
     }
+//    @Transactional
+//    public String issueRefreshToken(Authentication authentication){
+//
+//        String newRefreshToken = tokenProvider.createRefreshToken(authentication.getName(), authentication.getAuthorities());
+//
+//        // 기존것이 있다면 바꿔주고, 없다면 만들어줌
+//        refreshTokenRepository.findByKey(authentication.getName())
+//                .ifPresentOrElse(
+//                        r-> {r.updateValue(newRefreshToken);
+//                            log.info("issueRefreshToken method | change token ");
+//                        },
+//                        () -> {
+//                            RefreshToken token = RefreshToken.builder()
+//                                    .key(authentication.getName())
+//                                    .value(newRefreshToken)
+//                                    .build();
+//                            log.info(" issueRefreshToken method | save tokenID : {}, token : {}", token.getUserId(), token.getToken());
+//                            refreshTokenRepository.save(token);
+//                        });
+//        return newRefreshToken;
+//    }
 }

@@ -1,5 +1,6 @@
 package com.caubogeo.bogeo.jwt;
 
+import com.caubogeo.bogeo.domain.auth.Authority;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -12,7 +13,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.Set;
 
 import static com.caubogeo.bogeo.jwt.JwtProperties.AUTHORIZATION_HEADER;
 import static com.caubogeo.bogeo.jwt.JwtProperties.BEARER_PREFIX;
@@ -22,52 +23,50 @@ import static com.caubogeo.bogeo.jwt.JwtProperties.BEARER_PREFIX;
 public class JwtFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
 
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if(request.getServletPath().startsWith("/auth")) {
-            filterChain.doFilter(request, response);
-        } else {
-            String token = resolveToken(request);
+        log.info("JWT Filter...");
+        // 헤더에서 JWT 를 받아옵니다.
+        String accessToken = tokenProvider.resolveAccessToken(request);
+        String refreshToken = tokenProvider.resolveRefreshToken(request);
 
-            log.debug("token = {}", token);
-
-            if(StringUtils.hasText(token)) {
-                int flag = tokenProvider.validateToken(token);
-                // 유효한 토큰
-                if(flag == 1) {
-                    this.setAuthentication(token);
-                } else if(flag == 2) {
-                    response.setContentType("application/json");
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setCharacterEncoding("UTF-8");
-                    PrintWriter out = response.getWriter();
-                    log.debug("doFilterInternal Exception CALL!");
-                    out.println("{\"error\": \"ACCESS_TOKEN_EXPIRED\", \"message\" : \"액세스 토큰이 만료되었습니다.\"}");
-                } else {
-                    response.setContentType("application/json");
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setCharacterEncoding("UTF-8");
-                    PrintWriter out = response.getWriter();
-                    log.debug("doFilterInternal Exception CALL!");
-                    out.println("{\"error\": \"BAD_TOKEN\", \"message\" : \"잘못된 토큰 값입니다.\"}");
+        // 유효한 토큰인지 확인합니다.
+        if (accessToken != null) {
+            // 어세스 토큰이 유효한 상황
+            if (tokenProvider.validateToken(accessToken)) {
+                this.setAuthentication(accessToken);
+            }
+            // 어세스 토큰이 만료된 상황 | 리프레시 토큰 또한 존재하는 상황
+            else if (!tokenProvider.validateToken(accessToken) && refreshToken != null) {
+                // 재발급 후, 컨텍스트에 다시 넣기
+                /// 리프레시 토큰 검증
+                boolean validateRefreshToken = tokenProvider.validateToken(refreshToken);
+                /// 리프레시 토큰 저장소 존재유무 확인
+                boolean isRefreshToken = tokenProvider.existsRefreshToken(refreshToken);
+                if (validateRefreshToken && isRefreshToken) {
+                    /// 리프레시 토큰으로 이메일 정보 가져오기
+                    String email = tokenProvider.getMemberIdByToken(refreshToken);
+                    /// 이메일로 권한정보 받아오기
+                    Set<Authority> roles = tokenProvider.getRoles(email);
+                    /// 토큰 발급
+                    String newAccessToken = tokenProvider.createAccessToken(email, roles);
+                    /// 헤더에 어세스 토큰 추가
+                    tokenProvider.setHeaderAccessToken(response, newAccessToken);
+                    /// 컨텍스트에 넣기
+                    this.setAuthentication(newAccessToken);
                 }
             }
-            else {
-                response.setContentType("application/json");
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.setCharacterEncoding("UTF-8");
-                PrintWriter out = response.getWriter();
-                out.println("{\"error\": \"EMPTY_TOKEN\", \"message\" : \"토큰 값이 비어있습니다.\"}");
-            }
         }
+        filterChain.doFilter(request, response);
     }
 
-    private void setAuthentication(String token) {
+    public void setAuthentication(String token) {
         Authentication authentication = tokenProvider.getAuthentication(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
-    private String resolveToken(HttpServletRequest request) {
+    public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
         if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
             return bearerToken.substring(7);

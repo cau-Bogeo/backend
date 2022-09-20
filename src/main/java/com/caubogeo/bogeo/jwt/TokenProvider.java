@@ -2,12 +2,12 @@ package com.caubogeo.bogeo.jwt;
 
 import com.caubogeo.bogeo.domain.auth.Authority;
 import com.caubogeo.bogeo.dto.jwt.TokenDto;
+import com.caubogeo.bogeo.exceptionhandler.AuthException;
 import com.caubogeo.bogeo.exceptionhandler.AuthorityExceptionType;
-import com.caubogeo.bogeo.exceptionhandler.BizException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.caubogeo.bogeo.exceptionhandler.JwtException;
+import com.caubogeo.bogeo.repository.MemberRepository;
+import com.caubogeo.bogeo.repository.RefreshTokenRepository;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
@@ -21,6 +21,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,21 +35,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Component
 public class TokenProvider {
-    private final long ACCESS_TOKEN_EXPIRE_TIME;
-    private final long REFRESH_TOKEN_EXPIRE_TIME;
+    private final long ACCESS_TOKEN_EXPIRE_TIME = JwtProperties.ACCESS_TOKEN_EXPIRATION_TIME;
+    private final long REFRESH_TOKEN_EXPIRE_TIME = JwtProperties.REFRESH_TOKEN_EXPIRATION_TIME;
+    private final Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(JwtProperties.SECRET));
+    private final RefreshTokenRepository tokenRepository;
+    private final MemberRepository memberRepository;
 
-    private final Key key;
-
-    public TokenProvider() {
-        this.ACCESS_TOKEN_EXPIRE_TIME = JwtProperties.ACCESS_TOKEN_EXPIRATION_TIME;
-        this.REFRESH_TOKEN_EXPIRE_TIME = JwtProperties.REFRESH_TOKEN_EXPIRATION_TIME;
-        byte[] keyBytes = Decoders.BASE64.decode(JwtProperties.SECRET);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    protected String createToken(String email, Set<Authority> auth, long tokenValid) {
+    protected String createToken(String id, Set<Authority> auth, long tokenValid) {
         // ex) sub : abc@abc.com
-        Claims claims = Jwts.claims().setSubject(email);
+        Claims claims = Jwts.claims().setSubject(id);
 
         // ex)  auth : ROLE_USER,ROLE_ADMIN
         claims.put(JwtProperties.AUTHORIZATION_HEADER, auth.stream()  // doubt
@@ -84,12 +80,12 @@ public class TokenProvider {
                 .build();
     }
 
-    public Authentication getAuthentication(String accessToken) throws BizException {
+    public Authentication getAuthentication(String token) throws JwtException {
         // 토큰 복호화
-        Claims claims = parseClaims(accessToken);
+        Claims claims = parseClaims(token);
 
         if(claims.get(JwtProperties.AUTHORIZATION_HEADER) == null || !StringUtils.hasText(claims.get(JwtProperties.AUTHORIZATION_HEADER).toString())) {
-            throw new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY);  // 유저에게 권한 없음
+            throw new AuthException(AuthorityExceptionType.NOT_FOUND_AUTHORITY);  // 유저에게 권한 없음
         }
 
         log.debug("claims.getAuth = {}", claims.get(JwtProperties.AUTHORIZATION_HEADER));
@@ -110,24 +106,56 @@ public class TokenProvider {
         return new CustomIdPasswordAuthToken(principal, "", authorities);
     }
 
-    public int validateToken(String token) {
+    private Claims parseClaims(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return 1;
-        } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
-            return 2;
-        } catch (Exception e) {
-            log.info("잘못된 토큰입니다.");
-            return -1;
-        }
-    }
-
-    private Claims parseClaims(String accessToken) {
-        try {
-            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
         } catch (ExpiredJwtException e) {  // 만료된 토큰이어도 파싱한다
             return e.getClaims();
         }
+    }
+    // Request의 Header에서 AccessToken 값을 가져옵니다. "Authentication" : "token"
+    public String resolveAccessToken(HttpServletRequest request) {
+        if(request.getHeader(JwtProperties.AUTHORIZATION_HEADER) != null )
+            return request.getHeader(JwtProperties.AUTHORIZATION_HEADER).substring(7);
+        return null;
+    }
+    // Request의 Header에서 RefreshToken 값을 가져옵니다. "refreshToken" : "token"
+    public String resolveRefreshToken(HttpServletRequest request) {
+        if(request.getHeader("refreshToken") != null )
+            return request.getHeader("refreshToken").substring(7);
+        return null;
+    }
+
+    // 토큰의 유효성 + 만료일자 확인
+    public boolean validateToken(String jwtToken) {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(jwtToken);
+            log.info("expiration: {}", claims.getBody().getExpiration());
+            return !claims.getBody().getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            log.info(e.getMessage());
+            return false;
+        }
+    }
+
+    // 어세스 토큰 헤더 설정
+    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
+        response.setHeader(JwtProperties.AUTHORIZATION_HEADER, "Bearer "+ accessToken);
+    }
+
+    // 리프레시 토큰 헤더 설정
+    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
+        response.setHeader("refreshToken", "Bearer "+ refreshToken);
+    }
+
+    public boolean existsRefreshToken(String refreshToken) {
+        return tokenRepository.existsByValue(refreshToken);
+    }
+
+    public Set<Authority> getRoles(String id) {
+        return memberRepository.findById(id).get().getAuthorities();
     }
 }
