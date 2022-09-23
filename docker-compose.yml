@@ -7,13 +7,10 @@ services:
     environment:
       MYSQL_DATABASE: bogeo
       MYSQL_ROOT_PASSWORD: 1234
-      TZ: Asia/Seoul
-    command:
-      - --character-set-server=utf8mb4
     volumes:
       - ./db:/var/lib/mysql
     ports:
-      - "3304:3306"
+      - "3306:3306"
     networks:
       - springboot-mysql-net
   app:
@@ -27,7 +24,7 @@ services:
       - database
     container_name: bogeo_app
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://database:3304/bogeo?useSSL=false&serverTimezone=Asia/Seoul&character_set_server=utf8mb4&validationQuery="select 1"
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/bogeo?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 1234
     networks:
