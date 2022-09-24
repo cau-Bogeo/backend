@@ -2,7 +2,6 @@ package com.caubogeo.bogeo.dto.profile;
 
 import com.caubogeo.bogeo.domain.member.Gender;
 import com.caubogeo.bogeo.domain.member.Member;
-import com.caubogeo.bogeo.dto.member.MemberResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
