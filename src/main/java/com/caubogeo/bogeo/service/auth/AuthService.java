@@ -1,15 +1,17 @@
 package com.caubogeo.bogeo.service.auth;
 
 import com.caubogeo.bogeo.domain.auth.Authority;
-import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.domain.auth.MemberAuth;
 import com.caubogeo.bogeo.domain.jwt.RefreshToken;
+import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.dto.jwt.TokenDto;
-import com.caubogeo.bogeo.dto.jwt.TokenRequestDto;
 import com.caubogeo.bogeo.dto.login.LoginRequestDto;
 import com.caubogeo.bogeo.dto.member.MemberRequestDto;
 import com.caubogeo.bogeo.dto.member.MemberResponseDto;
-import com.caubogeo.bogeo.exceptionhandler.*;
+import com.caubogeo.bogeo.exceptionhandler.AuthException;
+import com.caubogeo.bogeo.exceptionhandler.AuthorityExceptionType;
+import com.caubogeo.bogeo.exceptionhandler.MemberException;
+import com.caubogeo.bogeo.exceptionhandler.MemberExceptionType;
 import com.caubogeo.bogeo.jwt.CustomIdPasswordAuthToken;
 import com.caubogeo.bogeo.jwt.TokenProvider;
 import com.caubogeo.bogeo.repository.AuthorityRepository;
@@ -20,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
