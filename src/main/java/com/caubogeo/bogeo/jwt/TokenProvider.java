@@ -19,6 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Getter
+@Transactional
 @RequiredArgsConstructor
 @Component
 public class TokenProvider {
@@ -85,9 +87,11 @@ public class TokenProvider {
         Claims claims = parseClaims(token);
 
         if(claims.get(JwtProperties.AUTHORIZATION_HEADER) == null || !StringUtils.hasText(claims.get(JwtProperties.AUTHORIZATION_HEADER).toString())) {
+            log.debug("not found authority = {}", claims.get(JwtProperties.AUTHORIZATION_HEADER).toString());
             throw new AuthException(AuthorityExceptionType.NOT_FOUND_AUTHORITY);  // 유저에게 권한 없음
         }
 
+        // debug log
         log.debug("claims.getAuth = {}", claims.get(JwtProperties.AUTHORIZATION_HEADER));
         log.debug("claims.getId = {}", claims.getSubject());
 
@@ -108,7 +112,12 @@ public class TokenProvider {
 
     private Claims parseClaims(String token) {
         try {
-            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            return Jwts
+                    .parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
         } catch (ExpiredJwtException e) {  // 만료된 토큰이어도 파싱한다
             return e.getClaims();
         }
@@ -133,10 +142,11 @@ public class TokenProvider {
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(jwtToken);
-            log.info("expiration: {}", claims.getBody().getExpiration());
+            log.debug("expiration: {}", claims.getBody().getExpiration());
             return !claims.getBody().getExpiration().before(new Date());
         } catch (ExpiredJwtException e) {
-            log.info(e.getMessage());
+            log.debug("expired exception!!");
+            log.debug(e.getMessage());
             return false;
         }
     }

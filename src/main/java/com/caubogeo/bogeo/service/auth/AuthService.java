@@ -28,6 +28,7 @@ import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
+@Transactional
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -46,7 +47,6 @@ public class AuthService {
         return memberRepository.existsById(id);
     }
 
-    @Transactional
     public MemberResponseDto signUp(MemberRequestDto dto) {
         if(memberRepository.existsById(dto.getId())) {
             throw new MemberException(MemberExceptionType.DUPLICATE_USER);
@@ -62,7 +62,6 @@ public class AuthService {
         return MemberResponseDto.of(memberRepository.save(member));
     }
 
-    @Transactional
     public TokenDto login(LoginRequestDto loginRequestDto) {
         CustomIdPasswordAuthToken customIdPasswordAuthToken = new CustomIdPasswordAuthToken(loginRequestDto.getId(), loginRequestDto.getPassword());
         Authentication authentication = authenticationManager.authenticate(customIdPasswordAuthToken);
@@ -84,7 +83,6 @@ public class AuthService {
         return tokenProvider.createTokenDto(accessToken, refreshToken);
     }
 
-    @Transactional
     public TokenDto reissue(String refreshToken) {
         Authentication authentication = tokenProvider.getAuthentication(refreshToken);
         RefreshToken findRefreshToken = refreshTokenRepository.findByKey(authentication.getName())
