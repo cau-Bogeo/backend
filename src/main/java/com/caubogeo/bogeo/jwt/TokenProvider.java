@@ -153,12 +153,12 @@ public class TokenProvider {
 
     // 어세스 토큰 헤더 설정
     public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
-        response.setHeader(JwtProperties.AUTHORIZATION_HEADER, "Bearer "+ accessToken);
+        response.setHeader(JwtProperties.AUTHORIZATION_HEADER, accessToken);
     }
 
     // 리프레시 토큰 헤더 설정
     public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
-        response.setHeader("refreshToken", "Bearer "+ refreshToken);
+        response.setHeader("refreshToken", refreshToken);
     }
 
     public boolean existsRefreshToken(String refreshToken) {
