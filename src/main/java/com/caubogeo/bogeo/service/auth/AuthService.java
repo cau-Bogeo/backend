@@ -1,17 +1,15 @@
 package com.caubogeo.bogeo.service.auth;
 
 import com.caubogeo.bogeo.domain.auth.Authority;
+import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.domain.auth.MemberAuth;
 import com.caubogeo.bogeo.domain.jwt.RefreshToken;
-import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.dto.jwt.TokenDto;
+import com.caubogeo.bogeo.dto.jwt.TokenRequestDto;
 import com.caubogeo.bogeo.dto.login.LoginRequestDto;
 import com.caubogeo.bogeo.dto.member.MemberRequestDto;
 import com.caubogeo.bogeo.dto.member.MemberResponseDto;
-import com.caubogeo.bogeo.exceptionhandler.AuthException;
-import com.caubogeo.bogeo.exceptionhandler.AuthorityExceptionType;
-import com.caubogeo.bogeo.exceptionhandler.MemberException;
-import com.caubogeo.bogeo.exceptionhandler.MemberExceptionType;
+import com.caubogeo.bogeo.exceptionhandler.*;
 import com.caubogeo.bogeo.jwt.CustomIdPasswordAuthToken;
 import com.caubogeo.bogeo.jwt.TokenProvider;
 import com.caubogeo.bogeo.repository.AuthorityRepository;
@@ -22,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +28,7 @@ import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
+@Transactional
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -47,7 +47,6 @@ public class AuthService {
         return memberRepository.existsById(id);
     }
 
-    @Transactional
     public MemberResponseDto signUp(MemberRequestDto dto) {
         if(memberRepository.existsById(dto.getId())) {
             throw new MemberException(MemberExceptionType.DUPLICATE_USER);
@@ -63,7 +62,6 @@ public class AuthService {
         return MemberResponseDto.of(memberRepository.save(member));
     }
 
-    @Transactional
     public TokenDto login(LoginRequestDto loginRequestDto) {
         CustomIdPasswordAuthToken customIdPasswordAuthToken = new CustomIdPasswordAuthToken(loginRequestDto.getId(), loginRequestDto.getPassword());
         Authentication authentication = authenticationManager.authenticate(customIdPasswordAuthToken);
@@ -85,7 +83,6 @@ public class AuthService {
         return tokenProvider.createTokenDto(accessToken, refreshToken);
     }
 
-    @Transactional
     public TokenDto reissue(String refreshToken) {
         Authentication authentication = tokenProvider.getAuthentication(refreshToken);
         RefreshToken findRefreshToken = refreshTokenRepository.findByKey(authentication.getName())

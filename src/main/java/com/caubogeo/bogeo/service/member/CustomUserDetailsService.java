@@ -41,7 +41,8 @@ public class CustomUserDetailsService  implements UserDetailsService {
                 .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
     }
 
-    private UserDetails createUserDetails(Member member) {
+    @Transactional
+    public UserDetails createUserDetails(Member member) {
         List<SimpleGrantedAuthority> authorityList = member.getAuthorities()
                 .stream()
                 .map(Authority::getAuthorityName)

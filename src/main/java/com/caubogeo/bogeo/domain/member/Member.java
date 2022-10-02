@@ -45,7 +45,7 @@ public class Member extends BaseTimeEntity {
     @Column(name="activated")
     private boolean activated;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name="member_authority",
             joinColumns = {@JoinColumn(name="member_id", referencedColumnName = "member_id")},
