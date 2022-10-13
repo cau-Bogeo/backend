@@ -110,7 +110,7 @@ public class DataApiService {
                 log.debug("url = {}", url);
                 log.debug("i번째 페이지 : {}", i);
                 BufferedReader bf;
-                bf = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
+                bf = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
                 String result = bf.readLine();
                 JSONParser jsonParser = new JSONParser();
                 JSONObject object = (JSONObject) jsonParser.parse(result);
