@@ -1,6 +1,8 @@
 package com.caubogeo.bogeo.publicdata;
 
+import com.caubogeo.bogeo.domain.medicine.AvoidCombination;
 import com.caubogeo.bogeo.domain.medicine.PillShape;
+import com.caubogeo.bogeo.repository.CombinationRepository;
 import com.caubogeo.bogeo.repository.PillShapeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +25,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DataApiService {
-    private final PillShapeRepository repository;
+    private final PillShapeRepository pillShapeRepository;
+    private final CombinationRepository combinationRepository;
 
     @Transactional
     public void setPillShapeDatabase() {
@@ -91,7 +94,43 @@ public class DataApiService {
                             .mark_front(mark_front)
                             .mark_rear(mark_rear)
                             .build();
-                    repository.save(new_pill);
+                    pillShapeRepository.save(new_pill);
+                }
+            }
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Transactional
+    public void setCombinationDatabase() {
+        try {
+            for(int i = 1; i <= 4666; i++) {
+                URL url = new URL("http://apis.data.go.kr/1471000/DURPrdlstInfoService01/getUsjntTabooInfoList?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&typeName=%EB%B3%91%EC%9A%A9%EA%B8%88%EA%B8%B0&pageNo="+i+"&numOfRows=100&type=json");
+                log.debug("url = {}", url);
+                log.debug("i번째 페이지 : {}", i);
+                BufferedReader bf;
+                bf = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
+                String result = bf.readLine();
+                JSONParser jsonParser = new JSONParser();
+                JSONObject object = (JSONObject) jsonParser.parse(result);
+                JSONObject body = (JSONObject) object.get("body");
+                JSONArray items = (JSONArray) body.get("items");
+                for(int j = 0; j<items.size(); j++) {
+                    JSONObject combination =(JSONObject) items.get(j);
+                    String first_medicine_seq = (String) combination.get("ITEM_SEQ");
+                    String second_medicine_seq = (String) combination.get("MIXTURE_ITEM_SEQ");
+                    String first_medicine_name = (String) combination.get("ITEM_NAME");
+                    String second_medicine_name = (String) combination.get("MIXTURE_ITEM_NAME");
+                    String prohibited_content =(String) combination.get("PROHBT_CONTENT");
+                    AvoidCombination avoidCombination = AvoidCombination.builder()
+                            .first_medicine_seq(first_medicine_seq)
+                            .first_medicine_name(first_medicine_name)
+                            .second_medicine_seq(second_medicine_seq)
+                            .second_medicine_name(second_medicine_name)
+                            .prohibited_content(prohibited_content)
+                            .build();
+                    combinationRepository.save(avoidCombination);
                 }
             }
         } catch (IOException | ParseException e) {

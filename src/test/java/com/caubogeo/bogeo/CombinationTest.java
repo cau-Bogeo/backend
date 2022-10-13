@@ -1,5 +1,5 @@
 package com.caubogeo.bogeo;
 
-public class AuthTest {
+public class CombinationTest {
 
 }

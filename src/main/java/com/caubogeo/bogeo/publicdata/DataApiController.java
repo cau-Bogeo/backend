@@ -17,4 +17,9 @@ public class DataApiController {
     public void makeShapeDatabase() {
         dataApiService.setPillShapeDatabase();
     }
+
+    @GetMapping("/combination")
+    public void makeCombinationDatabase() {
+        dataApiService.setCombinationDatabase();
+    }
 }
