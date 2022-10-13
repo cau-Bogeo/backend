@@ -30,7 +30,7 @@ public class PillShape {
     @Column
     private String entp_name;
 
-    @Column
+    @Column(length=500)
     private String chart;
 
     @NotNull
