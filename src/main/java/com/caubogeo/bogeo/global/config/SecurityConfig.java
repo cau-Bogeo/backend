@@ -51,7 +51,7 @@ public class SecurityConfig{
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/**/auth/**", "/").permitAll()
+                .antMatchers("/**/auth/**", "/", "/api/shape").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
