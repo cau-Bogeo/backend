@@ -124,13 +124,15 @@ public class DataApiService {
                     String second_medicine_name = (String) combination.get("MIXTURE_ITEM_NAME");
                     String prohibited_content =(String) combination.get("PROHBT_CONTENT");
                     AvoidCombination avoidCombination = AvoidCombination.builder()
-                            .first_medicine_seq(first_medicine_seq)
-                            .first_medicine_name(first_medicine_name)
-                            .second_medicine_seq(second_medicine_seq)
-                            .second_medicine_name(second_medicine_name)
-                            .prohibited_content(prohibited_content)
+                            .firstMedicineSeq(first_medicine_seq)
+                            .firstMedicineName(first_medicine_name)
+                            .secondMedicineSeq(second_medicine_seq)
+                            .secondMedicineName(second_medicine_name)
+                            .prohibitedContent(prohibited_content)
                             .build();
-                    combinationRepository.save(avoidCombination);
+                    if(!combinationRepository.existsByFirstMedicineSeqAndSecondMedicineSeq(avoidCombination.getFirstMedicineSeq(), avoidCombination.getSecondMedicineSeq())) {
+                        combinationRepository.save(avoidCombination);
+                    }
                 }
             }
         } catch (IOException | ParseException e) {

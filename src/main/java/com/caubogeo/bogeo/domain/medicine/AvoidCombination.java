@@ -19,20 +19,20 @@ public class AvoidCombination {
 
     @NotNull
     @Column
-    private String first_medicine_seq;
+    private String firstMedicineSeq;
 
     @NotNull
     @Column(length = 600)
-    private String first_medicine_name;
+    private String firstMedicineName;
 
     @NotNull
     @Column
-    private String second_medicine_seq;
+    private String secondMedicineSeq;
 
     @NotNull
     @Column(length = 600)
-    private String second_medicine_name;
+    private String secondMedicineName;
 
     @Column(length = 600)
-    private String prohibited_content;
+    private String prohibitedContent;
 }
