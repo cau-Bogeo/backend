@@ -105,7 +105,7 @@ public class DataApiService {
     @Transactional
     public void setCombinationDatabase() {
         try {
-            for(int i = 2533; i <= 4666; i++) {
+            for(int i = 2884; i <= 4666; i++) {
                 URL url = new URL("http://apis.data.go.kr/1471000/DURPrdlstInfoService01/getUsjntTabooInfoList?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&typeName=%EB%B3%91%EC%9A%A9%EA%B8%88%EA%B8%B0&pageNo="+i+"&numOfRows=100&type=json");
                 log.debug("url = {}", url);
                 log.debug("i번째 페이지 : {}", i);
@@ -130,7 +130,11 @@ public class DataApiService {
                             .secondMedicineName(second_medicine_name)
                             .prohibitedContent(prohibited_content)
                             .build();
-                    if(!combinationRepository.existsByFirstMedicineSeqAndSecondMedicineSeq(avoidCombination.getFirstMedicineSeq(), avoidCombination.getSecondMedicineSeq())) {
+                    if(i == 2884) {
+                        if (!combinationRepository.existsByFirstMedicineSeqAndSecondMedicineSeq(avoidCombination.getFirstMedicineSeq(), avoidCombination.getSecondMedicineSeq())) {
+                            combinationRepository.save(avoidCombination);
+                        }
+                    } else {
                         combinationRepository.save(avoidCombination);
                     }
                 }
