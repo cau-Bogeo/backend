@@ -30,9 +30,6 @@ public class DataApiService {
     private final PillShapeRepository pillShapeRepository;
     private final CombinationRepository combinationRepository;
     private final MedicineDetailRepository medicineDetailRepository;
-    private static final int EFFECT_CODE = 0;
-    private static final int DOSAGE_CODE = 1;
-    private static final int WARNING_CODE = 2;
 
     @Transactional
     public void setPillShapeDatabase() {
@@ -163,7 +160,7 @@ public class DataApiService {
         try {
             for (int i = 1; i <= 1; i++) {
                 URL url = new URL(
-                        "https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService02/getDrugPrdtPrmsnDtlInq01?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&pageNo="
+                        "http://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService02/getDrugPrdtPrmsnDtlInq01?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&pageNo="
                                 + i + "&numOfRows=100&type=json");
                 log.debug("url = {}", url);
                 BufferedReader bf;
@@ -196,9 +193,9 @@ public class DataApiService {
                     String medicineEffectRaw = (String) medicineDetailJson.get("EE_DOC_DATA");
                     String medicineDosageRaw = (String) medicineDetailJson.get("UD_DOC_DATA");
                     String medicineWarningRaw = (String) medicineDetailJson.get("NB_DOC_DATA");
-                    String medicineEffect = parseDetailInformation(medicineEffectRaw, EFFECT_CODE);
-                    String medicineDosage = parseDetailInformation(medicineDosageRaw, DOSAGE_CODE);
-                    String medicineWarning = parseDetailInformation(medicineWarningRaw, WARNING_CODE);
+                    String medicineEffect = parseDetailInformation(medicineEffectRaw);
+                    String medicineDosage = parseDetailInformation(medicineDosageRaw);
+                    String medicineWarning = parseDetailInformation(medicineWarningRaw);
 
                     MedicineDetail medicineDetail = MedicineDetail.builder()
                             .itemSeq(itemSeq)
@@ -223,29 +220,27 @@ public class DataApiService {
         }
     }
 
-    private String parseDetailInformation(String medicineDetailRaw, int convertCode) {
-        String splitString = medicineDetailRaw;
-        splitString = splitString.replace("\\r", "");
-        splitString = splitString.replace("\\n", "");
-        splitString = splitString.replace("<SECTION title=\\\"\\\">", "");
-        splitString = splitString.replace("<ARTICLE title=\\\"\\\">", "");
-        splitString = splitString.replace("<PARAGRAPH tagName=\\\"p\\\" textIndent=\\\"\\\" marginLeft=\\\"\\\">", "");
-        splitString = splitString.replace("<\\/PARAGRAPH>", "");
-        splitString = splitString.replace("<\\/ARTICLE>", "");
-        splitString = splitString.replace("<\\/SECTION>", "");
-        splitString = splitString.replace("<\\/DOC>", "");
-        splitString = splitString.replace("![CDATA[", "");
-        splitString = splitString.replace("]]", "");
-        if (convertCode == WARNING_CODE) {
-            splitString = splitString.replace("ARTICLE title=\\\"", "");
-            splitString = splitString.replace("\\\"", "");
+    private String parseDetailInformation(String medicineDetailRaw) {
+        String parsedString = medicineDetailRaw;
+        String[] removeWords = {"\\r", "\\n", "&nbsp;", "SECTION title=\"", "ARTICLE title=\"", "PARAGRAPH", "ARTICLE", "SECTION", "DOC", "]]", "\"", "/"};
+        for (String removeWord: removeWords) {
+            parsedString = parsedString.replace(removeWord, "");
         }
 
-        String[] list = Arrays.stream(splitString.split("[<|>]"))
+        String[] list = Arrays.stream(parsedString.split("[<|>]"))
                 .filter(s -> !s.isEmpty())
+                .filter(s -> !s.startsWith("PARAGRAPH"))
                 .map(String::trim)
                 .toArray(String[]::new);
-        String result = String.join("\n", Arrays.copyOfRange(list, 1, list.length));
+        list = Arrays.stream(list)
+                .filter(s -> !s.startsWith("tagName"))
+                .map(String::trim)
+                .toArray(String[]::new);
+
+        String[] trimArray = Arrays.stream(Arrays.copyOfRange(list, 1, list.length))
+                .filter(s-> !s.isBlank())
+                .toArray(String[]:: new);
+        String result = String.join("\n", trimArray);
         return result;
     }
 }
