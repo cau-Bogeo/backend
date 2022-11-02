@@ -1,8 +1,10 @@
 package com.caubogeo.bogeo.publicdata;
 
 import com.caubogeo.bogeo.domain.medicine.AvoidCombination;
+import com.caubogeo.bogeo.domain.medicine.MedicineDetail;
 import com.caubogeo.bogeo.domain.medicine.PillShape;
 import com.caubogeo.bogeo.repository.CombinationRepository;
+import com.caubogeo.bogeo.repository.MedicineDetailRepository;
 import com.caubogeo.bogeo.repository.PillShapeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +29,19 @@ import java.util.List;
 public class DataApiService {
     private final PillShapeRepository pillShapeRepository;
     private final CombinationRepository combinationRepository;
+    private final MedicineDetailRepository medicineDetailRepository;
+    private static final int EFFECT_CODE = 0;
+    private static final int DOSAGE_CODE = 1;
+    private static final int WARNING_CODE = 2;
 
     @Transactional
     public void setPillShapeDatabase() {
         try {
-            for(int j = 1; j<=248; j++) {
-                URL url = new URL("http://apis.data.go.kr/1471000/MdcinGrnIdntfcInfoService01/getMdcinGrnIdntfcInfoList01?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&pageNo=" + j + "&numOfRows=100&type=json");
-                log.debug("url = {}", url.toString());
+            for (int j = 1; j <= 248; j++) {
+                URL url = new URL(
+                        "http://apis.data.go.kr/1471000/MdcinGrnIdntfcInfoService01/getMdcinGrnIdntfcInfoList01?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&pageNo="
+                                + j + "&numOfRows=100&type=json");
+                log.debug("url = {}", url);
                 BufferedReader bf;
                 bf = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
                 String result = bf.readLine();
@@ -41,10 +49,10 @@ public class DataApiService {
                 JSONObject object = (JSONObject) jsonParser.parse(result);
                 JSONObject body = (JSONObject) object.get("body");
                 JSONArray items = (JSONArray) body.get("items");
-                for(int i = 0; i<items.size(); i++) {
+                for (int i = 0; i < items.size(); i++) {
                     log.debug("i번째 값 : {} j번째 페이지 : {}", i, j);
-                    JSONObject pill = (JSONObject)items.get(i);
-                    String item_seq = (String)pill.get("ITEM_SEQ");
+                    JSONObject pill = (JSONObject) items.get(i);
+                    String item_seq = (String) pill.get("ITEM_SEQ");
                     String item_name = (String) pill.get("ITEM_NAME");
                     String entp_name = (String) pill.get("ENTP_NAME");
                     String chart = (String) pill.get("CHART");
@@ -53,23 +61,25 @@ public class DataApiService {
                     List<String> mark_rear;
                     List<String> color_front;
                     List<String> color_rear;
-                    if(pill.get("MARK_CODE_FRONT_ANAL") == null || ((String)pill.get("MARK_CODE_FRONT_ANAL")).isEmpty()) {
+                    if (pill.get("MARK_CODE_FRONT_ANAL") == null || ((String) pill.get(
+                            "MARK_CODE_FRONT_ANAL")).isEmpty()) {
                         mark_front = null;
                     } else {
-                        mark_front = Arrays.asList(((String)pill.get("MARK_CODE_FRONT_ANAL")).split("\\|"));
+                        mark_front = Arrays.asList(((String) pill.get("MARK_CODE_FRONT_ANAL")).split("\\|"));
                     }
-                    if (pill.get("MARK_CODE_BACK_ANAL") == null || ((String)pill.get("MARK_CODE_BACK_ANAL")).isEmpty()) {
+                    if (pill.get("MARK_CODE_BACK_ANAL") == null || ((String) pill.get(
+                            "MARK_CODE_BACK_ANAL")).isEmpty()) {
                         mark_rear = null;
                     } else {
-                        mark_rear = Arrays.asList(((String)pill.get("MARK_CODE_BACK_ANAL")).split("\\|"));
+                        mark_rear = Arrays.asList(((String) pill.get("MARK_CODE_BACK_ANAL")).split("\\|"));
                     }
                     if (pill.get("COLOR_CLASS1") != null) {
-                        color_front = Arrays.asList(((String)pill.get("COLOR_CLASS1")).split("\\|"));
+                        color_front = Arrays.asList(((String) pill.get("COLOR_CLASS1")).split("\\|"));
                     } else {
                         color_front = null;
                     }
                     if (pill.get("COLOR_CLASS2") != null) {
-                        color_rear = Arrays.asList(((String)pill.get("COLOR_CLASS2")).split("\\|"));
+                        color_rear = Arrays.asList(((String) pill.get("COLOR_CLASS2")).split("\\|"));
                     } else {
                         color_rear = null;
                     }
@@ -79,20 +89,20 @@ public class DataApiService {
                     String print_front = (String) pill.get("PRINT_FRONT");
                     String print_back = (String) pill.get("PRINT_BACK");
                     PillShape new_pill = PillShape.builder()
-                            .item_seq(item_seq)
-                            .item_name(item_name)
-                            .entp_name(entp_name)
+                            .itemSeq(item_seq)
+                            .itemName(item_name)
+                            .entpName(entp_name)
                             .chart(chart)
                             .image(image)
                             .shape(shape)
-                            .color_front(color_front)
-                            .color_rear(color_rear)
-                            .class_name(class_name)
-                            .medicine_type(medicine_type)
-                            .print_front(print_front)
-                            .print_back(print_back)
-                            .mark_front(mark_front)
-                            .mark_rear(mark_rear)
+                            .colorFront(color_front)
+                            .colorRear(color_rear)
+                            .className(class_name)
+                            .medicineType(medicine_type)
+                            .printFront(print_front)
+                            .printBack(print_back)
+                            .markFront(mark_front)
+                            .markRear(mark_rear)
                             .build();
                     pillShapeRepository.save(new_pill);
                 }
@@ -105,8 +115,10 @@ public class DataApiService {
     @Transactional
     public void setCombinationDatabase() {
         try {
-            for(int i = 2884; i <= 4666; i++) {
-                URL url = new URL("http://apis.data.go.kr/1471000/DURPrdlstInfoService01/getUsjntTabooInfoList?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&typeName=%EB%B3%91%EC%9A%A9%EA%B8%88%EA%B8%B0&pageNo="+i+"&numOfRows=100&type=json");
+            for (int i = 2884; i <= 4666; i++) {
+                URL url = new URL(
+                        "http://apis.data.go.kr/1471000/DURPrdlstInfoService01/getUsjntTabooInfoList?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&typeName=%EB%B3%91%EC%9A%A9%EA%B8%88%EA%B8%B0&pageNo="
+                                + i + "&numOfRows=100&type=json");
                 log.debug("url = {}", url);
                 log.debug("i번째 페이지 : {}", i);
                 BufferedReader bf;
@@ -116,13 +128,13 @@ public class DataApiService {
                 JSONObject object = (JSONObject) jsonParser.parse(result);
                 JSONObject body = (JSONObject) object.get("body");
                 JSONArray items = (JSONArray) body.get("items");
-                for(int j = 0; j<items.size(); j++) {
-                    JSONObject combination =(JSONObject) items.get(j);
+                for (int j = 0; j < items.size(); j++) {
+                    JSONObject combination = (JSONObject) items.get(j);
                     String first_medicine_seq = (String) combination.get("ITEM_SEQ");
                     String second_medicine_seq = (String) combination.get("MIXTURE_ITEM_SEQ");
                     String first_medicine_name = (String) combination.get("ITEM_NAME");
                     String second_medicine_name = (String) combination.get("MIXTURE_ITEM_NAME");
-                    String prohibited_content =(String) combination.get("PROHBT_CONTENT");
+                    String prohibited_content = (String) combination.get("PROHBT_CONTENT");
                     AvoidCombination avoidCombination = AvoidCombination.builder()
                             .firstMedicineSeq(first_medicine_seq)
                             .firstMedicineName(first_medicine_name)
@@ -130,17 +142,110 @@ public class DataApiService {
                             .secondMedicineName(second_medicine_name)
                             .prohibitedContent(prohibited_content)
                             .build();
-                    if(i == 2884) {
-                        if (!combinationRepository.existsByFirstMedicineSeqAndSecondMedicineSeq(avoidCombination.getFirstMedicineSeq(), avoidCombination.getSecondMedicineSeq())) {
+                    if (i == 2884) {
+                        if (!combinationRepository.existsByFirstMedicineSeqAndSecondMedicineSeq(
+                                avoidCombination.getFirstMedicineSeq(), avoidCombination.getSecondMedicineSeq())) {
                             combinationRepository.save(avoidCombination);
                         }
                     } else {
                         combinationRepository.save(avoidCombination);
                     }
                 }
+                bf.close();
             }
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    @Transactional
+    public void setMedicineDetailDatabase() {
+        try {
+            for (int i = 1; i <= 1; i++) {
+                URL url = new URL(
+                        "https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService02/getDrugPrdtPrmsnDtlInq01?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&pageNo="
+                                + i + "&numOfRows=100&type=json");
+                log.debug("url = {}", url);
+                BufferedReader bf;
+                bf = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
+                String result = bf.readLine();
+                JSONParser jsonParser = new JSONParser();
+                JSONObject object = (JSONObject) jsonParser.parse(result);
+                JSONObject body = (JSONObject) object.get("body");
+                JSONArray items = (JSONArray) body.get("items");
+                for (int j = 0; j < items.size(); j++) {
+                    JSONObject medicineDetailJson = (JSONObject) items.get(j);
+                    String itemSeq = (String) medicineDetailJson.get("ITEM_SEQ");
+
+                    PillShape pillShape = pillShapeRepository.findByItemSeq(itemSeq);
+                    if (pillShape == null) {
+                        continue;
+                    }
+                    String image = pillShape.getImage();
+                    String className = pillShape.getClassName();
+                    String itemName = (String) medicineDetailJson.get("ITEM_NAME");
+                    String entpName = (String) medicineDetailJson.get("ENTP_NAME");
+                    String medicineCode = (String) medicineDetailJson.get("ETC_OTC_CODE");
+                    String storageMethod = (String) medicineDetailJson.get("STORAGE_METHOD");
+
+                    String mainItemIngredient = (String) medicineDetailJson.get("MAIN_ITEM_INGR");
+                    List<String> mainItemIngredientList = List.of(mainItemIngredient.split("\\|"));
+
+                    String validTerm = (String) medicineDetailJson.get("VALID_TERM");
+
+                    String medicineEffectRaw = (String) medicineDetailJson.get("EE_DOC_DATA");
+                    String medicineDosageRaw = (String) medicineDetailJson.get("UD_DOC_DATA");
+                    String medicineWarningRaw = (String) medicineDetailJson.get("NB_DOC_DATA");
+                    String medicineEffect = parseDetailInformation(medicineEffectRaw, EFFECT_CODE);
+                    String medicineDosage = parseDetailInformation(medicineDosageRaw, DOSAGE_CODE);
+                    String medicineWarning = parseDetailInformation(medicineWarningRaw, WARNING_CODE);
+
+                    MedicineDetail medicineDetail = MedicineDetail.builder()
+                            .itemSeq(itemSeq)
+                            .itemName(itemName)
+                            .entpName(entpName)
+                            .medicineCode(medicineCode)
+                            .medicineEffect(medicineEffect)
+                            .medicineDosage(medicineDosage)
+                            .medicineWarning(medicineWarning)
+                            .storageMethod(storageMethod)
+                            .mainItemIngredient(mainItemIngredientList)
+                            .validTerm(validTerm)
+                            .image(image)
+                            .className(className)
+                            .build();
+                    medicineDetailRepository.save(medicineDetail);
+                }
+                bf.close();
+            }
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String parseDetailInformation(String medicineDetailRaw, int convertCode) {
+        String splitString = medicineDetailRaw;
+        splitString = splitString.replace("\\r", "");
+        splitString = splitString.replace("\\n", "");
+        splitString = splitString.replace("<SECTION title=\\\"\\\">", "");
+        splitString = splitString.replace("<ARTICLE title=\\\"\\\">", "");
+        splitString = splitString.replace("<PARAGRAPH tagName=\\\"p\\\" textIndent=\\\"\\\" marginLeft=\\\"\\\">", "");
+        splitString = splitString.replace("<\\/PARAGRAPH>", "");
+        splitString = splitString.replace("<\\/ARTICLE>", "");
+        splitString = splitString.replace("<\\/SECTION>", "");
+        splitString = splitString.replace("<\\/DOC>", "");
+        splitString = splitString.replace("![CDATA[", "");
+        splitString = splitString.replace("]]", "");
+        if (convertCode == WARNING_CODE) {
+            splitString = splitString.replace("ARTICLE title=\\\"", "");
+            splitString = splitString.replace("\\\"", "");
+        }
+
+        String[] list = Arrays.stream(splitString.split("[<|>]"))
+                .filter(s -> !s.isEmpty())
+                .map(String::trim)
+                .toArray(String[]::new);
+        String result = String.join("\n", Arrays.copyOfRange(list, 1, list.length));
+        return result;
     }
 }

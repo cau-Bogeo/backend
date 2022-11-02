@@ -20,15 +20,15 @@ public class PillShape {
 
     @NotNull
     @Column
-    private String item_seq;
+    private String itemSeq;
 
     @NotNull
     @Column
-    private String item_name;
+    private String itemName;
 
     @NotNull
     @Column
-    private String entp_name;
+    private String entpName;
 
     @Column(length=500)
     private String chart;
@@ -43,26 +43,26 @@ public class PillShape {
 
     @NotNull
     @ElementCollection
-    private List<String> color_front;
+    private List<String> colorFront;
 
     @ElementCollection
-    private List<String> color_rear;
+    private List<String> colorRear;
 
     @Column
-    private String class_name;
+    private String className;
 
     @Column
-    private String medicine_type;
+    private String medicineType;
 
     @Column
-    private String print_front;
+    private String printFront;
 
     @Column
-    private String print_back;
+    private String printBack;
 
     @ElementCollection
-    private List<String> mark_front;
+    private List<String> markFront;
 
     @ElementCollection
-    private List<String> mark_rear;
+    private List<String> markRear;
 }
