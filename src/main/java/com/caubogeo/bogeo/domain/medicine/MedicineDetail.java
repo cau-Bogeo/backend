@@ -51,7 +51,6 @@ public class MedicineDetail {
     @Column
     private String validTerm;
 
-    @NotNull
     @Column
     private String image;
 
