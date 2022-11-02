@@ -175,11 +175,12 @@ public class DataApiService {
                     String itemSeq = (String) medicineDetailJson.get("ITEM_SEQ");
 
                     PillShape pillShape = pillShapeRepository.findByItemSeq(itemSeq);
-                    if (pillShape == null) {
-                        continue;
+                    String image = null;
+                    String className = null;
+                    if (pillShape != null) {
+                        image = pillShape.getImage();
+                        className = pillShape.getClassName();
                     }
-                    String image = pillShape.getImage();
-                    String className = pillShape.getClassName();
                     String itemName = (String) medicineDetailJson.get("ITEM_NAME");
                     String entpName = (String) medicineDetailJson.get("ENTP_NAME");
                     String medicineCode = (String) medicineDetailJson.get("ETC_OTC_CODE");
