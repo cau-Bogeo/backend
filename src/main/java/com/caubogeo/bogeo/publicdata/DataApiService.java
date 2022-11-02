@@ -174,7 +174,7 @@ public class DataApiService {
                     JSONObject medicineDetailJson = (JSONObject) items.get(j);
                     String itemSeq = (String) medicineDetailJson.get("ITEM_SEQ");
 
-                    PillShape pillShape = pillShapeRepository.findByItemSeq(itemSeq);
+                    PillShape pillShape = pillShapeRepository.findFirstByItemSeq(itemSeq);
                     String image = null;
                     String className = null;
                     if (pillShape != null) {
@@ -187,7 +187,10 @@ public class DataApiService {
                     String storageMethod = (String) medicineDetailJson.get("STORAGE_METHOD");
 
                     String mainItemIngredient = (String) medicineDetailJson.get("MAIN_ITEM_INGR");
-                    List<String> mainItemIngredientList = List.of(mainItemIngredient.split("\\|"));
+                    List<String> mainItemIngredientList = null;
+                    if(mainItemIngredient != null) {
+                        mainItemIngredientList = List.of(mainItemIngredient.split("\\|"));
+                    }
 
                     String validTerm = (String) medicineDetailJson.get("VALID_TERM");
 
@@ -232,7 +235,7 @@ public class DataApiService {
 
     private String parseDetailInformation(String medicineDetailRaw) {
         String parsedString = medicineDetailRaw;
-        String[] removeWords = {"\\r", "\\n", "&nbsp;", "SECTION title=\"", "ARTICLE title=\"", "PARAGRAPH", "ARTICLE", "SECTION", "DOC", "]]", "\"", "/"};
+        String[] removeWords = {"\\r", "\\n", "&nbsp;", "SECTION title=\"", "ARTICLE title=\"", "PARAGRAPH", "ARTICLE", "SECTION", "DOC", "]]", "![CDATA[", "\"", "/", "&#x2022;", "&amp;", "nbsp;"};
         for (String removeWord: removeWords) {
             parsedString = parsedString.replace(removeWord, "");
         }

@@ -33,13 +33,13 @@ public class MedicineDetail {
     @Column
     private String medicineCode;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
     private String medicineEffect;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
     private String medicineDosage;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
     private String medicineWarning;
 
     @Column(length = 600)

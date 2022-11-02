@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PillShapeRepository extends JpaRepository<PillShape, Long> {
-    PillShape findByItemSeq(String itemName);
+    PillShape findFirstByItemSeq(String itemSeq);
 }
