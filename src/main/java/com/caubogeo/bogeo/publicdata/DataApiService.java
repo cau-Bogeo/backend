@@ -194,9 +194,18 @@ public class DataApiService {
                     String medicineEffectRaw = (String) medicineDetailJson.get("EE_DOC_DATA");
                     String medicineDosageRaw = (String) medicineDetailJson.get("UD_DOC_DATA");
                     String medicineWarningRaw = (String) medicineDetailJson.get("NB_DOC_DATA");
-                    String medicineEffect = parseDetailInformation(medicineEffectRaw);
-                    String medicineDosage = parseDetailInformation(medicineDosageRaw);
-                    String medicineWarning = parseDetailInformation(medicineWarningRaw);
+                    String medicineEffect = null;
+                    String medicineDosage = null;
+                    String medicineWarning = null;
+                    if(medicineEffectRaw != null){
+                        medicineEffect = parseDetailInformation(medicineEffectRaw);
+                    }
+                    if(medicineDosageRaw != null) {
+                        medicineDosage = parseDetailInformation(medicineDosageRaw);
+                    }
+                    if(medicineWarningRaw != null) {
+                        medicineWarning = parseDetailInformation(medicineWarningRaw);
+                    }
 
                     MedicineDetail medicineDetail = MedicineDetail.builder()
                             .itemSeq(itemSeq)
