@@ -27,6 +27,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/bogeo?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 1234
+      JVM_OPTS: "-Xms4g -Xmx4g"
     networks:
       - springboot-mysql-net
 networks:
