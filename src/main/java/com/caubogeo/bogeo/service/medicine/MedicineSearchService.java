@@ -16,12 +16,12 @@ public class MedicineSearchService {
     private final MedicineDetailRepository medicineDetailRepository;
 
     public List<MedicineResponseDto> searchMedicineName(String name) {
-        // TODO: 레포지토리에서 약 가져오기
-        List<MedicineDetail> medicineDetailList = medicineDetailRepository.findByItemNameContains(name);
-        List<MedicineResponseDto> responseDtoList = new ArrayList<>();
-        for(MedicineDetail medicineDetail: medicineDetailList) {
-            responseDtoList.add(MedicineResponseDto.of(medicineDetail));
-        }
-        return responseDtoList;
+        List<MedicineResponseDto> medicineDetailList = medicineDetailRepository.findByItemNameContains(name);
+//        List<MedicineResponseDto> responseDtoList = new ArrayList<>();
+//        for(MedicineDetail medicineDetail: medicineDetailList) {
+//            responseDtoList.add(MedicineResponseDto.of(medicineDetail));
+//        }
+//        return responseDtoList;
+        return medicineDetailList;
     }
 }
