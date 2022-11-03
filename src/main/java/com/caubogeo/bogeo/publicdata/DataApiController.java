@@ -22,4 +22,9 @@ public class DataApiController {
     public void makeCombinationDatabase() {
         dataApiService.setCombinationDatabase();
     }
+
+    @GetMapping("/detail")
+    public void makeMedicineDetailDatabase() {
+        dataApiService.setMedicineDetailDatabase();
+    }
 }
