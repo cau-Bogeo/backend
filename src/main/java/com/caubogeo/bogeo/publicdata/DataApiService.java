@@ -158,7 +158,7 @@ public class DataApiService {
     @Transactional
     public void setMedicineDetailDatabase() {
         try {
-            for (int i = 351; i <= 400; i++) {
+            for (int i = 401; i <= 450; i++) {
                 URL url = new URL(
                         "http://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService02/getDrugPrdtPrmsnDtlInq01?serviceKey=ZaEuGtM8LYExIc%2FxBYwBYjrB%2BB4Lmetl1CRgp%2FPrJGfJRYGQec%2Fr2mqMRAaDuoRUuolev3%2BO%2FmLtvl34LS%2Be2A%3D%3D&pageNo="
                                 + i + "&numOfRows=100&type=json");
