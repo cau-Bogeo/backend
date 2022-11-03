@@ -1,6 +1,5 @@
 package com.caubogeo.bogeo.service.medicine;
 
-import com.caubogeo.bogeo.domain.medicine.MedicineDetail;
 import com.caubogeo.bogeo.dto.medicine.MedicineResponseDto;
 import com.caubogeo.bogeo.repository.MedicineDetailRepository;
 import java.util.ArrayList;
@@ -16,12 +15,8 @@ public class MedicineSearchService {
     private final MedicineDetailRepository medicineDetailRepository;
 
     public List<MedicineResponseDto> searchMedicineName(String name) {
-        List<MedicineResponseDto> medicineDetailList = medicineDetailRepository.findByItemNameContains(name);
-//        List<MedicineResponseDto> responseDtoList = new ArrayList<>();
-//        for(MedicineDetail medicineDetail: medicineDetailList) {
-//            responseDtoList.add(MedicineResponseDto.of(medicineDetail));
-//        }
-//        return responseDtoList;
+        List<MedicineResponseDto> medicineDetailList = new ArrayList<>();
+        medicineDetailRepository.findByItemNameContains(name).forEach(medicineQuery -> medicineDetailList.add(MedicineResponseDto.of(medicineQuery)));
         return medicineDetailList;
     }
 }
