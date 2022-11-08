@@ -4,13 +4,28 @@ import com.caubogeo.bogeo.domain.BaseTimeEntity;
 import com.caubogeo.bogeo.domain.auth.Authority;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sun.istack.NotNull;
-import lombok.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Table(name = "user")
 @Getter
@@ -53,24 +68,6 @@ public class Member extends BaseTimeEntity {
     )
     private Set<Authority> authorities = new HashSet<>();
 
-    public void addAuthority(Authority authority) {
-        this.getAuthorities().add(authority);
-    }
-
-    public void removeAuthority(Authority authority) {
-        this.getAuthorities().remove(authority);
-    }
-
-    public void activate(boolean flag) {
-        this.activated = flag;
-    }
-
-    public String getAuthoritiesToString() {
-        return this.authorities.stream()
-                .map(Authority::getAuthorityName)
-                .collect(Collectors.joining(","));
-    }
-    public void encodePassword(PasswordEncoder passwordEncoder) {
-        this.password = passwordEncoder.encode(password);
-    }
+    @OneToMany(mappedBy = "user")
+    private List<Medicine> medicines = new ArrayList<>();
 }
