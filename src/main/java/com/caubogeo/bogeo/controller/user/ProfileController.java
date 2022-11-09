@@ -1,4 +1,4 @@
-package com.caubogeo.bogeo.controller.profile;
+package com.caubogeo.bogeo.controller.user;
 
 import com.caubogeo.bogeo.dto.profile.ProfileResponseDto;
 import com.caubogeo.bogeo.service.profile.ProfileService;

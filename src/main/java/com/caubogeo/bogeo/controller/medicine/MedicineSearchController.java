@@ -1,5 +1,6 @@
-package com.caubogeo.bogeo.controller.search;
+package com.caubogeo.bogeo.controller.medicine;
 
+import com.caubogeo.bogeo.dto.medicine.MedicineDetailResponseDto;
 import com.caubogeo.bogeo.dto.medicine.MedicineResponseDto;
 import com.caubogeo.bogeo.service.medicine.MedicineSearchService;
 import java.nio.charset.StandardCharsets;
@@ -27,5 +28,12 @@ public class MedicineSearchController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         return new ResponseEntity<>(medicineSearchService.searchMedicineName(name), headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/detail")
+    public ResponseEntity<MedicineDetailResponseDto> searchMedicineDetail(@RequestParam("id") String id, @RequestParam("seq") String medicineSeq) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
+        return new ResponseEntity<>(medicineSearchService.searchMedicineDetail(id, medicineSeq), headers, HttpStatus.OK);
     }
 }

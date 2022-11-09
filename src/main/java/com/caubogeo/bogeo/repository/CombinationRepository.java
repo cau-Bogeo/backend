@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CombinationRepository extends JpaRepository<AvoidCombination, Long> {
     boolean existsByFirstMedicineSeqAndSecondMedicineSeq(String firstMedicineSeq, String secondMedicineSeq);
+    AvoidCombination findByFirstMedicineSeqAndSecondMedicineSeq(String firstMedicineSeq, String secondMedicineSeq);
 }

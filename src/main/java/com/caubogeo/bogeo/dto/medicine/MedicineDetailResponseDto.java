@@ -17,7 +17,7 @@ public class MedicineDetailResponseDto {
 
     public static MedicineDetailResponseDto of(MedicineDetail medicineDetail, List<MedicineCombinationDto> combinations) {
         if(combinations.isEmpty()) {
-            return new MedicineDetailResponseDto(false, MedicineDetailDto.of(medicineDetail), combinations);
+            return new MedicineDetailResponseDto(false, MedicineDetailDto.of(medicineDetail), null);
         }
         return new MedicineDetailResponseDto(true, MedicineDetailDto.of(medicineDetail), combinations);
     }

@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 public interface MedicineDetailRepository extends JpaRepository<MedicineDetail, Long> {
 
     List<MedicineQuery> findByItemNameContains(String itemName);
+    MedicineDetail findByItemSeq(String itemSeq);
 }
