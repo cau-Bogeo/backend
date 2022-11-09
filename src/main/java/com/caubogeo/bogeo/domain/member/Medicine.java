@@ -2,7 +2,8 @@ package com.caubogeo.bogeo.domain.member;
 
 import com.caubogeo.bogeo.domain.BaseTimeEntity;
 import com.sun.istack.NotNull;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -47,7 +48,16 @@ public class Medicine extends BaseTimeEntity {
     private String period;
 
     @Column
-    private LocalDateTime endDay;
+    private boolean hasEndDay;
+
+    @Column
+    private LocalDate endDay;
+
+    @Column
+    private boolean hasMedicineTime;
+
+    @Column(columnDefinition = "TIME")
+    private LocalTime medicineTime;
 
     @Column
     private int dosage;
