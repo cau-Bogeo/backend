@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,5 +36,14 @@ public class MedicineSearchController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         return new ResponseEntity<>(medicineSearchService.searchMedicineDetail(id, medicineSeq), headers, HttpStatus.OK);
+    }
+
+    @PutMapping("/detail")
+    public ResponseEntity<Void> updateMedicineDetail(@RequestParam("seq") String itemSeq) {
+        medicineSearchService.updateMedicineDetail(itemSeq);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
+        return new ResponseEntity<>(headers, HttpStatus.OK);
+
     }
 }

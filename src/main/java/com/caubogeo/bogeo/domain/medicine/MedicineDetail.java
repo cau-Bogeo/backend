@@ -8,6 +8,7 @@ import java.util.List;
 
 @Table
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
