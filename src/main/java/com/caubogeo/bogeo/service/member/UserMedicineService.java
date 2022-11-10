@@ -30,7 +30,10 @@ public class UserMedicineService {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
         PeriodType periodType = PeriodType.valueOfLabel(requestDto.getPeriodType());
-        LocalTime medicineTime = LocalTime.of(requestDto.getMedicineHour(), requestDto.getMedicineMinute());
+        LocalTime medicineTime = null;
+        if(requestDto.isHasMedicineTime()) {
+            medicineTime = LocalTime.of(requestDto.getMedicineHour(), requestDto.getMedicineMinute());
+        }
         String[] endDayRaw = requestDto.getEndDay().split("-");
         int[] endDay = Arrays.stream(endDayRaw).mapToInt(Integer::parseInt).toArray();
         log.info("endDay: {} {} {}", endDay[0], endDay[1], endDay[2]);
