@@ -4,6 +4,7 @@ import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.domain.member.PeriodType;
 import com.caubogeo.bogeo.dto.member.UserMedicineRequestDto;
+import com.caubogeo.bogeo.dto.member.UserMedicinesResponseDto;
 import com.caubogeo.bogeo.exceptionhandler.MedicineException;
 import com.caubogeo.bogeo.exceptionhandler.MedicineExceptionType;
 import com.caubogeo.bogeo.exceptionhandler.MemberException;
@@ -31,15 +32,18 @@ public class UserMedicineService {
                 .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
         PeriodType periodType = PeriodType.valueOfLabel(requestDto.getPeriodType());
         LocalTime medicineTime = null;
+        LocalDate endDateTime = null;
         if(requestDto.isHasMedicineTime()) {
             medicineTime = LocalTime.of(requestDto.getMedicineHour(), requestDto.getMedicineMinute());
         }
-        String[] endDayRaw = requestDto.getEndDay().split("-");
-        int[] endDay = Arrays.stream(endDayRaw).mapToInt(Integer::parseInt).toArray();
-        log.info("endDay: {} {} {}", endDay[0], endDay[1], endDay[2]);
-        LocalDate endDateTime = LocalDate.of(endDay[0], endDay[1], endDay[2]);
+        if(requestDto.isHasEndDay()) {
+            String[] endDayRaw = requestDto.getEndDay().split("-");
+            int[] endDay = Arrays.stream(endDayRaw).mapToInt(Integer::parseInt).toArray();
+            log.info("endDay: {} {} {}", endDay[0], endDay[1], endDay[2]);
+            endDateTime = LocalDate.of(endDay[0], endDay[1], endDay[2]);
+        }
 
-        if(endDateTime.isBefore(LocalDate.now())) {
+        if(endDateTime != null && endDateTime.isBefore(LocalDate.now())) {
             throw new MedicineException(MedicineExceptionType.OUT_OF_DATE_END_DATE);
         }
 
@@ -58,4 +62,8 @@ public class UserMedicineService {
 
         medicineRepository.save(medicine);
     }
+
+//    public UserMedicinesResponseDto getUserMedicines(String id) {
+//        List<>
+//    }
 }
