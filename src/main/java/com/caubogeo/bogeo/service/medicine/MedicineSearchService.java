@@ -38,14 +38,15 @@ public class MedicineSearchService {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
         List<UserMedicineQuery> userMedicineList = userMedicineRepository.findByUser(member);
+        List<UserMedicineQuery> uniqueMedicineList = DuplicationUtils.deduplication(userMedicineList, UserMedicineQuery::getMedicineSeq);
         MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicineSeq);
         List<MedicineCombinationDto> avoidCombinations = new ArrayList<>();
 
-        if(userMedicineList.isEmpty()) {
+        if(uniqueMedicineList.isEmpty()) {
             return MedicineDetailResponseDto.of(medicineDetail, avoidCombinations);
         }
 
-        for(UserMedicineQuery secondMedicineSeq: userMedicineList) {
+        for(UserMedicineQuery secondMedicineSeq: uniqueMedicineList) {
             AvoidCombination combination = combinationRepository.findByFirstMedicineSeqAndSecondMedicineSeq(medicineSeq,
                     secondMedicineSeq.getMedicineSeq());
             if(combination != null) {
