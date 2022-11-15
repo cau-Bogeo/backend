@@ -83,4 +83,12 @@ public class UserMedicineService {
         }
         return responseDtoList;
     }
+
+    @Transactional
+    public void changeMedicineActivation(Long id) {
+        Medicine medicine = medicineRepository.findById(id)
+                .orElseThrow(() -> new MedicineException(MedicineExceptionType.NOT_FOUND_MEDICINE));
+        medicine.setActivated(!medicine.isActivated());
+        medicineRepository.save(medicine);
+    }
 }
