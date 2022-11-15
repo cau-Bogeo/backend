@@ -2,11 +2,11 @@ package com.caubogeo.bogeo.service.medicine;
 
 import com.caubogeo.bogeo.domain.medicine.AvoidCombination;
 import com.caubogeo.bogeo.domain.medicine.MedicineDetail;
+import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.dto.medicine.MedicineCombinationDto;
 import com.caubogeo.bogeo.dto.medicine.MedicineDetailResponseDto;
 import com.caubogeo.bogeo.dto.medicine.MedicineResponseDto;
-import com.caubogeo.bogeo.dto.member.UserMedicineQuery;
 import com.caubogeo.bogeo.exceptionhandler.MemberException;
 import com.caubogeo.bogeo.exceptionhandler.MemberExceptionType;
 import com.caubogeo.bogeo.repository.CombinationRepository;
@@ -37,8 +37,8 @@ public class MedicineSearchService {
     public MedicineDetailResponseDto searchMedicineDetail(String id, String medicineSeq) {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
-        List<UserMedicineQuery> userMedicineList = userMedicineRepository.findByUser(member);
-        List<UserMedicineQuery> uniqueMedicineList = DuplicationUtils.deduplication(userMedicineList, UserMedicineQuery::getMedicineSeq);
+        List<Medicine> userMedicineList = userMedicineRepository.findByUser(member);
+        List<Medicine> uniqueMedicineList = DuplicationUtils.deduplication(userMedicineList, Medicine::getMedicineSeq);
         MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicineSeq);
         List<MedicineCombinationDto> avoidCombinations = new ArrayList<>();
 
@@ -46,7 +46,7 @@ public class MedicineSearchService {
             return MedicineDetailResponseDto.of(medicineDetail, avoidCombinations);
         }
 
-        for(UserMedicineQuery secondMedicineSeq: uniqueMedicineList) {
+        for(Medicine secondMedicineSeq: uniqueMedicineList) {
             AvoidCombination combination = combinationRepository.findByFirstMedicineSeqAndSecondMedicineSeq(medicineSeq,
                     secondMedicineSeq.getMedicineSeq());
             if(combination != null) {

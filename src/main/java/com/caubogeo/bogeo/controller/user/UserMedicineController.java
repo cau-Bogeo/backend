@@ -1,14 +1,17 @@
 package com.caubogeo.bogeo.controller.user;
 
 import com.caubogeo.bogeo.dto.member.UserMedicineRequestDto;
+import com.caubogeo.bogeo.dto.member.UserMedicinesResponseDto;
 import com.caubogeo.bogeo.service.member.UserMedicineService;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,5 +31,13 @@ public class UserMedicineController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         return new ResponseEntity<>(headers, HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserMedicinesResponseDto>> getUserMedicines(@RequestParam("id") String id, @RequestParam("year") int year,
+                                                                           @RequestParam("month") int month, @RequestParam("day") int day) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
+        return new ResponseEntity<>(userMedicineService.getUserMedicines(id, year, month, day), headers, HttpStatus.OK);
     }
 }

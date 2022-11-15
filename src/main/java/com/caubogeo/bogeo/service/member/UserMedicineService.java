@@ -1,5 +1,6 @@
 package com.caubogeo.bogeo.service.member;
 
+import com.caubogeo.bogeo.domain.medicine.MedicineDetail;
 import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.domain.member.PeriodType;
@@ -9,11 +10,14 @@ import com.caubogeo.bogeo.exceptionhandler.MedicineException;
 import com.caubogeo.bogeo.exceptionhandler.MedicineExceptionType;
 import com.caubogeo.bogeo.exceptionhandler.MemberException;
 import com.caubogeo.bogeo.exceptionhandler.MemberExceptionType;
+import com.caubogeo.bogeo.repository.MedicineDetailRepository;
 import com.caubogeo.bogeo.repository.MemberRepository;
 import com.caubogeo.bogeo.repository.UserMedicineRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserMedicineService {
     private final MemberRepository memberRepository;
     private final UserMedicineRepository medicineRepository;
+    private final MedicineDetailRepository medicineDetailRepository;
 
     @Transactional
     public void makeUserMedicine(String id, UserMedicineRequestDto requestDto) {
@@ -63,7 +68,19 @@ public class UserMedicineService {
         medicineRepository.save(medicine);
     }
 
-//    public UserMedicinesResponseDto getUserMedicines(String id) {
-//        List<>
-//    }
+    public List<UserMedicinesResponseDto> getUserMedicines(String id, int year, int month, int day) {
+        LocalDate date = LocalDate.of(year, month, day);
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
+        List<Medicine> medicineList = medicineRepository.findByUser(member);
+        List<UserMedicinesResponseDto> responseDtoList = new ArrayList<>();
+        for(Medicine medicine : medicineList) {
+            if(medicine.isHasEndDay() && medicine.getEndDay().isBefore(date)) {
+                continue;
+            }
+            MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
+            responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineDetail.getItemName()));
+        }
+        return responseDtoList;
+    }
 }
