@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserMedicinesResponseDto {
+    private Long medicineId;
     private String medicineSeq;
     private String medicineName;
     private PeriodType periodType;
@@ -24,6 +25,7 @@ public class UserMedicinesResponseDto {
     private boolean isActivated;
 
     public UserMedicinesResponseDto(Medicine medicine, String medicineName) {
+        this.medicineId = medicine.getId();
         this.medicineSeq = medicine.getMedicineSeq();
         this.medicineName = medicineName;
         this.periodType = medicine.getPeriodType();
