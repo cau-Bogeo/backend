@@ -23,8 +23,9 @@ public class UserMedicinesResponseDto {
     private LocalTime medicineTime;
     private int dosage;
     private boolean isActivated;
+    private String medicineImage;
 
-    public UserMedicinesResponseDto(Medicine medicine, String medicineName) {
+    public UserMedicinesResponseDto(Medicine medicine, String medicineName, String medicineImage) {
         this.medicineId = medicine.getId();
         this.medicineSeq = medicine.getMedicineSeq();
         this.medicineName = medicineName;
@@ -36,5 +37,6 @@ public class UserMedicinesResponseDto {
         this.medicineTime = medicine.getMedicineTime();
         this.dosage = medicine.getDosage();
         this.isActivated = medicine.isActivated();
+        this.medicineImage = medicineImage;
     }
 }

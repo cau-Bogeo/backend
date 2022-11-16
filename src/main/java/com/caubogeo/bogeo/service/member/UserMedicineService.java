@@ -79,7 +79,7 @@ public class UserMedicineService {
                 continue;
             }
             MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
-            responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineDetail.getItemName()));
+            responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineDetail.getItemName(), medicineDetail.getImage()));
         }
         return responseDtoList;
     }
