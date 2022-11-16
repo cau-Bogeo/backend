@@ -15,9 +15,11 @@ import com.caubogeo.bogeo.repository.MemberRepository;
 import com.caubogeo.bogeo.repository.UserMedicineRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -78,10 +80,39 @@ public class UserMedicineService {
             if(medicine.isHasEndDay() && medicine.getEndDay().isBefore(date)) {
                 continue;
             }
-            MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
-            responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineDetail.getItemName(), medicineDetail.getImage()));
+            if(isValidDay(medicine, date)) {
+                MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
+                responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineDetail.getItemName(), medicineDetail.getImage()));
+            }
         }
         return responseDtoList;
+    }
+
+    public boolean isValidDay(Medicine medicine, LocalDate givenDate) {
+        if(medicine.getPeriodType() == PeriodType.EVERY_DAY) {
+            return true;
+        }
+        else if(medicine.getPeriodType() == PeriodType.SPECIFIC_PERIOD) {
+            LocalDate createdDate = medicine.getCreatedDate().toLocalDate();
+            long betweenDays = ChronoUnit.DAYS.between(createdDate, givenDate);
+            long period = Long.parseLong(medicine.getPeriod());
+            if(betweenDays % period == 0) {
+                return true;
+            }
+            return false;
+        }
+        else {
+            List<Integer> weekDays = Arrays.stream(medicine.getPeriod().split(","))
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+            for(Integer weekDay : weekDays) {
+                int day = givenDate.getDayOfWeek().getValue();
+                if(weekDay.equals(day)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     @Transactional
