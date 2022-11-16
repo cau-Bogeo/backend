@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,6 +46,14 @@ public class UserMedicineController {
     @PatchMapping
     public ResponseEntity<Void> changeMedicineActivation(@RequestParam("id") Long id) {
         userMedicineService.changeMedicineActivation(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
+        return new ResponseEntity<>(headers, HttpStatus.OK);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteMedicine(@RequestParam("id") Long id) {
+        userMedicineService.deleteMedicine(id);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         return new ResponseEntity<>(headers, HttpStatus.OK);

@@ -91,4 +91,9 @@ public class UserMedicineService {
         medicine.setActivated(!medicine.isActivated());
         medicineRepository.save(medicine);
     }
+
+    @Transactional
+    public void deleteMedicine(Long id) {
+        medicineRepository.deleteById(id);
+    }
 }
