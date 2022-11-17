@@ -89,11 +89,14 @@ public class UserMedicineService {
     }
 
     public boolean isValidDay(Medicine medicine, LocalDate givenDate) {
+        LocalDate createdDate = medicine.getCreatedDate().toLocalDate();
+        if(createdDate.isAfter(givenDate)) {
+            return false;
+        }
         if(medicine.getPeriodType() == PeriodType.EVERY_DAY) {
             return true;
         }
         else if(medicine.getPeriodType() == PeriodType.SPECIFIC_PERIOD) {
-            LocalDate createdDate = medicine.getCreatedDate().toLocalDate();
             long betweenDays = ChronoUnit.DAYS.between(createdDate, givenDate);
             long period = Long.parseLong(medicine.getPeriod());
             if(betweenDays % period == 0) {
