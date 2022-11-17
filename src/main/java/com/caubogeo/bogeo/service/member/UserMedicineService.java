@@ -93,6 +93,9 @@ public class UserMedicineService {
         if(createdDate.isAfter(givenDate)) {
             return false;
         }
+        if(medicine.isHasEndDay() && givenDate.isAfter(medicine.getEndDay())) {
+            return false;
+        }
         if(medicine.getPeriodType() == PeriodType.EVERY_DAY) {
             return true;
         }
