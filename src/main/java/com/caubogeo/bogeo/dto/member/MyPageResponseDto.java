@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.bytebuddy.asm.Advice.Local;
 
 @Getter
 @NoArgsConstructor
@@ -24,8 +25,9 @@ public class MyPageResponseDto {
     private LocalTime medicineTime;
     private int dosage;
     private boolean isActivated;
+    private String medicineImage;
 
-    public MyPageResponseDto(Medicine medicine, String medicineName) {
+    public MyPageResponseDto(Medicine medicine, String medicineName, String medicineImage) {
         this.createdDate = medicine.getCreatedDate().toLocalDate();
         this.medicineId = medicine.getId();
         this.medicineSeq = medicine.getMedicineSeq();
@@ -38,5 +40,6 @@ public class MyPageResponseDto {
         this.medicineTime = medicine.getMedicineTime();
         this.dosage = medicine.getDosage();
         this.isActivated = medicine.isActivated();
+        this.medicineImage = medicineImage;
     }
 }

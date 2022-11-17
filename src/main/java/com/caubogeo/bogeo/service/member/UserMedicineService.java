@@ -142,7 +142,7 @@ public class UserMedicineService {
         List<MyPageResponseDto> responseDtos = new ArrayList<>();
         for(Medicine medicine : myMedicines) {
             MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
-            responseDtos.add(new MyPageResponseDto(medicine, medicineDetail.getItemName()));
+            responseDtos.add(new MyPageResponseDto(medicine, medicineDetail.getItemName(), medicineDetail.getImage()));
         }
         return responseDtos;
     }
