@@ -1,5 +1,6 @@
 package com.caubogeo.bogeo.controller.user;
 
+import com.caubogeo.bogeo.dto.member.MyPageResponseDto;
 import com.caubogeo.bogeo.dto.member.UserMedicineRequestDto;
 import com.caubogeo.bogeo.dto.member.UserMedicinesResponseDto;
 import com.caubogeo.bogeo.service.member.UserMedicineService;
@@ -57,5 +58,12 @@ public class UserMedicineController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         return new ResponseEntity<>(headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/mypage")
+    public ResponseEntity<List<MyPageResponseDto>> getMyMedicine(@RequestParam("id") String id) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
+        return new ResponseEntity<>(userMedicineService.getMyMedicines(id), headers, HttpStatus.OK);
     }
 }

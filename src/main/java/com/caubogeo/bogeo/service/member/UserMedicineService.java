@@ -4,6 +4,7 @@ import com.caubogeo.bogeo.domain.medicine.MedicineDetail;
 import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.domain.member.PeriodType;
+import com.caubogeo.bogeo.dto.member.MyPageResponseDto;
 import com.caubogeo.bogeo.dto.member.UserMedicineRequestDto;
 import com.caubogeo.bogeo.dto.member.UserMedicinesResponseDto;
 import com.caubogeo.bogeo.exceptionhandler.MedicineException;
@@ -132,5 +133,17 @@ public class UserMedicineService {
     @Transactional
     public void deleteMedicine(Long id) {
         medicineRepository.deleteById(id);
+    }
+
+    public List<MyPageResponseDto> getMyMedicines(String id) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
+        List<Medicine> myMedicines = medicineRepository.findByUser(member);
+        List<MyPageResponseDto> responseDtos = new ArrayList<>();
+        for(Medicine medicine : myMedicines) {
+            MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
+            responseDtos.add(new MyPageResponseDto(medicine, medicineDetail.getItemName()));
+        }
+        return responseDtos;
     }
 }
