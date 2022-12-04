@@ -41,3 +41,4 @@ Dockerfile
 
 ### jwt file ###
 src/main/java/com/caubogeo/bogeo/jwt/JwtProperties.java
+src/main/resources/application-S3.properties
