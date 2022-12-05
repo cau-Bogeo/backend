@@ -1,5 +1,6 @@
 package com.caubogeo.bogeo.service.member;
 
+import com.caubogeo.bogeo.domain.medicine.CustomMedicine;
 import com.caubogeo.bogeo.domain.medicine.MedicineDetail;
 import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.domain.member.Member;
@@ -11,6 +12,7 @@ import com.caubogeo.bogeo.exceptionhandler.MedicineException;
 import com.caubogeo.bogeo.exceptionhandler.MedicineExceptionType;
 import com.caubogeo.bogeo.exceptionhandler.MemberException;
 import com.caubogeo.bogeo.exceptionhandler.MemberExceptionType;
+import com.caubogeo.bogeo.repository.CustomMedicineRepository;
 import com.caubogeo.bogeo.repository.MedicineDetailRepository;
 import com.caubogeo.bogeo.repository.MemberRepository;
 import com.caubogeo.bogeo.repository.UserMedicineRepository;
@@ -33,6 +35,7 @@ public class UserMedicineService {
     private final MemberRepository memberRepository;
     private final UserMedicineRepository medicineRepository;
     private final MedicineDetailRepository medicineDetailRepository;
+    private final CustomMedicineRepository customMedicineRepository;
 
     @Transactional
     public void makeUserMedicine(String id, UserMedicineRequestDto requestDto) {
@@ -81,9 +84,16 @@ public class UserMedicineService {
             if(medicine.isHasEndDay() && medicine.getEndDay().isBefore(date)) {
                 continue;
             }
-            if(isValidDay(medicine, date)) {
-                MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
-                responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineDetail.getItemName(), medicineDetail.getImage()));
+            if(isValidDay(medicine, date)) {  // 유효한 날짜일 때
+                if(medicine.getMedicineSeq() == null) {
+                    CustomMedicine customMedicine = customMedicineRepository.findById(medicine.getCustomMedicineId())
+                            .orElseThrow(() -> new MedicineException(MedicineExceptionType.NOT_FOUND_MEDICINE));
+                    responseDtoList.add(new UserMedicinesResponseDto(medicine, customMedicine.getMedicineName(), customMedicine.getMedicineImageUrl()));
+                }
+                else {
+                    MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
+                    responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineDetail.getItemName(), medicineDetail.getImage()));
+                }
             }
         }
         return responseDtoList;
