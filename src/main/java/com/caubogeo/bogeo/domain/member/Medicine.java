@@ -38,8 +38,10 @@ public class Medicine extends BaseTimeEntity {
     private Member user;
 
     @Column
-    @NotNull
     private String medicineSeq;
+
+    @Column
+    private Long customMedicineId;
 
     @Column
     @NotNull
