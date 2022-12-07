@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class CustomMedicineRequestDto {
-    private Long userId;
+    private String userId;
     private String medicineName;
     private int periodType;
     private String period;

@@ -46,14 +46,14 @@ public class CustomMedicineService {
             }
         }
 
+        Member user = memberRepository.findById(requestDto.getUserId())
+                .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
         CustomMedicine customMedicine = CustomMedicine.builder()
-                .memberId(requestDto.getUserId())
+                .memberId(user.getMemberId())
                 .medicineName(requestDto.getMedicineName())
                 .medicineImageUrl(customMedicineImage)
                 .build();
         CustomMedicine madeMedicine = customMedicineRepository.save(customMedicine);
-        Member user = memberRepository.findById(requestDto.getUserId())
-                .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
 
         PeriodType periodType = PeriodType.valueOfLabel(requestDto.getPeriodType());
 
