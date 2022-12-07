@@ -1,8 +1,9 @@
 package com.caubogeo.bogeo.controller.medicine;
 
-import com.caubogeo.bogeo.dto.medicine.CustomMedicineMakeResponseDto;
+import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.dto.medicine.CustomMedicineRequestDto;
 import com.caubogeo.bogeo.service.medicine.CustomMedicineService;
+import com.caubogeo.bogeo.service.member.UserMedicineService;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +24,16 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class CustomMedicineController {
     private final CustomMedicineService customMedicineService;
+    private final UserMedicineService userMedicineService;
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<CustomMedicineMakeResponseDto> makeCustomMedicine(@RequestPart("file") MultipartFile file,
+    public ResponseEntity<Void> makeCustomMedicine(@RequestPart("file") MultipartFile file,
                                                                             @RequestPart("medicineDto")CustomMedicineRequestDto medicineDto) {
+        Medicine medicine = customMedicineService.makeCustomMedicine(file, medicineDto);
+        userMedicineService.makeMedicineSchedule(medicine);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
-        return new ResponseEntity<>(customMedicineService.makeCustomMedicine(file, medicineDto), headers, HttpStatus.OK);
+//        return new ResponseEntity<>(customMedicineService.makeCustomMedicine(file, medicineDto), headers, HttpStatus.OK);
+        return new ResponseEntity<>(headers, HttpStatus.OK);
     }
 }

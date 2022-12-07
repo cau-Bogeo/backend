@@ -1,5 +1,6 @@
 package com.caubogeo.bogeo.controller.user;
 
+import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.dto.member.MyPageResponseDto;
 import com.caubogeo.bogeo.dto.member.UserMedicineRequestDto;
 import com.caubogeo.bogeo.dto.member.UserMedicinesResponseDto;
@@ -30,7 +31,8 @@ public class UserMedicineController {
 
     @PostMapping
     public ResponseEntity<Void> makeUserMedicine(@RequestParam("id") String id, @RequestBody UserMedicineRequestDto requestDto) {
-        userMedicineService.makeUserMedicine(id, requestDto);
+        Medicine medicine = userMedicineService.makeUserMedicine(id, requestDto);
+        userMedicineService.makeMedicineSchedule(medicine);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
         return new ResponseEntity<>(headers, HttpStatus.OK);

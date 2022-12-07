@@ -4,7 +4,6 @@ import com.caubogeo.bogeo.domain.medicine.CustomMedicine;
 import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.domain.member.PeriodType;
-import com.caubogeo.bogeo.dto.medicine.CustomMedicineMakeResponseDto;
 import com.caubogeo.bogeo.dto.medicine.CustomMedicineRequestDto;
 import com.caubogeo.bogeo.exceptionhandler.MedicineException;
 import com.caubogeo.bogeo.exceptionhandler.MedicineExceptionType;
@@ -34,7 +33,7 @@ public class CustomMedicineService {
     private final S3Uploader s3Uploader;
 
     @Transactional
-    public CustomMedicineMakeResponseDto makeCustomMedicine(MultipartFile image, CustomMedicineRequestDto requestDto) {
+    public Medicine makeCustomMedicine(MultipartFile image, CustomMedicineRequestDto requestDto) {
         String customMedicineImage;
         if (image.isEmpty()) {
             throw new MedicineException(MedicineExceptionType.EMPTY_IMAGE);
@@ -87,7 +86,6 @@ public class CustomMedicineService {
                 .isActivated(false)
                 .build();
         userMedicineRepository.save(medicine);
-
-        return new CustomMedicineMakeResponseDto(true, customMedicineImage);
+        return medicine;
     }
 }
