@@ -117,7 +117,8 @@ public class UserMedicineService {
 
     @Transactional
     public void deleteMedicine(Long id) {
-        medicineRepository.deleteById(id);
+        medicineScheduleRepository.deleteById(id);
+        //medicineRepository.deleteById(id);
     }
 
     public List<MyPageResponseDto> getMyMedicines(String id) {
