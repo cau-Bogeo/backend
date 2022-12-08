@@ -1,5 +1,6 @@
 package com.caubogeo.bogeo.dto.member;
 
+import com.caubogeo.bogeo.domain.medicine.MedicineSchedule;
 import com.caubogeo.bogeo.domain.member.Medicine;
 import com.caubogeo.bogeo.domain.member.PeriodType;
 import java.time.LocalDate;
@@ -24,9 +25,11 @@ public class UserMedicinesResponseDto {
     private int dosage;
     private boolean isActivated;
     private String medicineImage;
-    private boolean isCustomMedicine;
+    private Long customMedicineId;
+    private Long medicineScheduleId;
 
-    public UserMedicinesResponseDto(Medicine medicine, String medicineName, String medicineImage, boolean isCustomMedicine) {
+    public UserMedicinesResponseDto(Medicine medicine, MedicineSchedule medicineSchedule,
+                                    String medicineName, String medicineImage) {
         this.medicineId = medicine.getId();
         this.medicineSeq = medicine.getMedicineSeq();
         this.medicineName = medicineName;
@@ -37,8 +40,14 @@ public class UserMedicinesResponseDto {
         this.hasMedicineTime = medicine.isHasMedicineTime();
         this.medicineTime = medicine.getMedicineTime();
         this.dosage = medicine.getDosage();
-        this.isActivated = medicine.isActivated();
+        this.isActivated = medicineSchedule.isActivated();
         this.medicineImage = medicineImage;
-        this.isCustomMedicine = isCustomMedicine;
+        if(this.medicineSeq == null) {
+            this.customMedicineId = medicine.getCustomMedicineId();
+        }
+        else {
+            this.customMedicineId = null;
+        }
+        this.medicineScheduleId = medicineSchedule.getId();
     }
 }

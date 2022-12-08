@@ -21,7 +21,6 @@ import com.caubogeo.bogeo.repository.UserMedicineRepository;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,68 +84,35 @@ public class UserMedicineService {
         LocalDate date = LocalDate.of(year, month, day);
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
-        List<Medicine> medicineList = medicineRepository.findByUser(member);
+        List<MedicineSchedule> medicineSchedules = medicineScheduleRepository.findByUserIdAndScheduleDate(member.getMemberId(), date);
         List<UserMedicinesResponseDto> responseDtoList = new ArrayList<>();
-        for(Medicine medicine : medicineList) {
-            if(medicine.isHasEndDay() && medicine.getEndDay().isBefore(date)) {
-                continue;
+
+        for(MedicineSchedule medicineschedule : medicineSchedules) {
+            Medicine medicine = medicineRepository.findById(medicineschedule.getMedicineId())
+                    .orElseThrow(() -> new MedicineException(MedicineExceptionType.NOT_FOUND_MEDICINE));
+            if(medicine.getMedicineSeq() == null) {
+                CustomMedicine customMedicine = customMedicineRepository.findById(medicine.getCustomMedicineId())
+                                .orElseThrow(() -> new MedicineException(MedicineExceptionType.NOT_FOUND_MEDICINE));
+                        responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineschedule,
+                                customMedicine.getMedicineName(),
+                                customMedicine.getMedicineImageUrl()));
             }
-            if(isValidDay(medicine, date)) {  // 유효한 날짜일 때
-                if(medicine.getMedicineSeq() == null) {
-                    CustomMedicine customMedicine = customMedicineRepository.findById(medicine.getCustomMedicineId())
-                            .orElseThrow(() -> new MedicineException(MedicineExceptionType.NOT_FOUND_MEDICINE));
-                    responseDtoList.add(new UserMedicinesResponseDto(medicine, customMedicine.getMedicineName(),
-                            customMedicine.getMedicineImageUrl(), true));
-                }
-                else {
-                    MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
-                    responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineDetail.getItemName(),
-                            medicineDetail.getImage(), false));
-                }
+            else {
+                MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
+                    responseDtoList.add(new UserMedicinesResponseDto(medicine, medicineschedule,
+                            medicineDetail.getItemName(),
+                            medicineDetail.getImage()));
             }
         }
         return responseDtoList;
     }
 
-    public boolean isValidDay(Medicine medicine, LocalDate givenDate) {
-        LocalDate createdDate = medicine.getCreatedDate().toLocalDate();
-        if(createdDate.isAfter(givenDate)) {
-            return false;
-        }
-        if(medicine.isHasEndDay() && givenDate.isAfter(medicine.getEndDay())) {
-            return false;
-        }
-        if(medicine.getPeriodType() == PeriodType.EVERY_DAY) {
-            return true;
-        }
-        else if(medicine.getPeriodType() == PeriodType.SPECIFIC_PERIOD) {
-            long betweenDays = ChronoUnit.DAYS.between(createdDate, givenDate);
-            long period = Long.parseLong(medicine.getPeriod());
-            if(betweenDays % period == 0) {
-                return true;
-            }
-            return false;
-        }
-        else {
-            List<Integer> weekDays = Arrays.stream(medicine.getPeriod().split(","))
-                    .map(Integer::parseInt)
-                    .collect(Collectors.toList());
-            for(Integer weekDay : weekDays) {
-                int day = givenDate.getDayOfWeek().getValue();
-                if(weekDay.equals(day)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
     @Transactional
     public void changeMedicineActivation(Long id) {
-        Medicine medicine = medicineRepository.findById(id)
-                .orElseThrow(() -> new MedicineException(MedicineExceptionType.NOT_FOUND_MEDICINE));
-        medicine.setActivated(!medicine.isActivated());
-        medicineRepository.save(medicine);
+        MedicineSchedule medicineSchedule = medicineScheduleRepository.findById(id)
+                .orElseThrow(() -> new MedicineException(MedicineExceptionType.NOT_FOUND_SCHEDULE));
+        medicineSchedule.setActivated(!medicineSchedule.isActivated());
+        medicineScheduleRepository.save(medicineSchedule);
     }
 
     @Transactional
