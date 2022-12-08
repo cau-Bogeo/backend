@@ -126,8 +126,18 @@ public class UserMedicineService {
         List<Medicine> myMedicines = medicineRepository.findByUser(member);
         List<MyPageResponseDto> responseDtos = new ArrayList<>();
         for(Medicine medicine : myMedicines) {
-            MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
-            responseDtos.add(new MyPageResponseDto(medicine, medicineDetail.getItemName(), medicineDetail.getImage()));
+            if(medicine.getMedicineSeq() == null) {
+                CustomMedicine customMedicine = customMedicineRepository.findById(medicine.getCustomMedicineId())
+                        .orElseThrow(() -> new MedicineException(MedicineExceptionType.NOT_FOUND_MEDICINE));
+                responseDtos.add(
+                        new MyPageResponseDto(medicine, customMedicine.getMedicineName(), customMedicine.getMedicineImageUrl())
+                );
+            }
+            else {
+                MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicine.getMedicineSeq());
+                responseDtos.add(
+                        new MyPageResponseDto(medicine, medicineDetail.getItemName(), medicineDetail.getImage()));
+            }
         }
         return responseDtos;
     }
