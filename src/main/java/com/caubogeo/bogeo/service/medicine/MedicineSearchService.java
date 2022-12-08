@@ -15,6 +15,7 @@ import com.caubogeo.bogeo.repository.MemberRepository;
 import com.caubogeo.bogeo.repository.UserMedicineRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,9 @@ public class MedicineSearchService {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new MemberException(MemberExceptionType.NOT_FOUND_USER));
         List<Medicine> userMedicineList = userMedicineRepository.findByUser(member);
+        userMedicineList = userMedicineList.stream()
+                .filter(medicine -> medicine.getMedicineSeq() != null)
+                .collect(Collectors.toList());
         List<Medicine> uniqueMedicineList = DuplicationUtils.deduplication(userMedicineList, Medicine::getMedicineSeq);
         MedicineDetail medicineDetail = medicineDetailRepository.findByItemSeq(medicineSeq);
         List<MedicineCombinationDto> avoidCombinations = new ArrayList<>();
