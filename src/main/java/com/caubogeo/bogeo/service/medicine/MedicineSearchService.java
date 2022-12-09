@@ -7,18 +7,25 @@ import com.caubogeo.bogeo.domain.member.Member;
 import com.caubogeo.bogeo.dto.medicine.MedicineCombinationDto;
 import com.caubogeo.bogeo.dto.medicine.MedicineDetailResponseDto;
 import com.caubogeo.bogeo.dto.medicine.MedicineResponseDto;
+import com.caubogeo.bogeo.dto.medicine.OCRResponseDto;
+import com.caubogeo.bogeo.exceptionhandler.MedicineException;
+import com.caubogeo.bogeo.exceptionhandler.MedicineExceptionType;
 import com.caubogeo.bogeo.exceptionhandler.MemberException;
 import com.caubogeo.bogeo.exceptionhandler.MemberExceptionType;
 import com.caubogeo.bogeo.repository.CombinationRepository;
 import com.caubogeo.bogeo.repository.MedicineDetailRepository;
 import com.caubogeo.bogeo.repository.MemberRepository;
 import com.caubogeo.bogeo.repository.UserMedicineRepository;
+import com.caubogeo.bogeo.service.S3.S3Uploader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -28,6 +35,7 @@ public class MedicineSearchService {
     private final CombinationRepository combinationRepository;
     private final UserMedicineRepository userMedicineRepository;
     private final MemberRepository memberRepository;
+    private final S3Uploader s3Uploader;
 
     public List<MedicineResponseDto> searchMedicineName(String name) {
         List<MedicineResponseDto> medicineDetailList = new ArrayList<>();
@@ -60,5 +68,21 @@ public class MedicineSearchService {
             }
         }
         return MedicineDetailResponseDto.of(medicineDetail, avoidCombinations);
+    }
+
+    @Transactional
+    public OCRResponseDto makeImageUrl(MultipartFile file) {
+        String imageUrl;
+        if (file.isEmpty()) {
+            throw new MedicineException(MedicineExceptionType.EMPTY_IMAGE);
+        } else {
+            try {
+                imageUrl = s3Uploader.upload(file);
+            } catch (IOException e) {
+                throw new MedicineException(MedicineExceptionType.INVALID_MEDICINE_IMAGE);
+            }
+        }
+
+        return new OCRResponseDto(imageUrl);
     }
 }
